@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropCare AI - Responsive Design Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f0f8ff 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Responsive Breakpoints Test */
+        .breakpoint-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #059669;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        
+        /* Mobile First Design (≤576px) */
+        .hero {
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #059669, #0891b2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            min-height: 44px;
+            min-width: 44px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #059669, #0891b2);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #059669;
+            border: 2px solid #059669;
+        }
+        
+        .btn-outline:hover {
+            background: #059669;
+            color: white;
+        }
+        
+        .features {
+            padding: 4rem 0;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #1f2937;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #059669, #0891b2);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        .feature-card p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        /* Accessibility Features */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #059669;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* Focus styles */
+        *:focus-visible {
+            outline: 2px solid #059669;
+            outline-offset: 2px;
+        }
+        
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .feature-card {
+                border: 2px solid black;
+            }
+            
+            .btn-primary {
+                background: black;
+                border: 2px solid black;
+            }
+        }
+        
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Tablet (576px - 768px) */
+        @media (min-width: 576px) {
+            .breakpoint-indicator::after {
+                content: "Tablet (≥576px)";
+            }
+            
+            .container {
+                padding: 0 1.5rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        /* Laptop (768px - 992px) */
+        @media (min-width: 768px) {
+            .breakpoint-indicator::after {
+                content: "Laptop (≥768px)";
+            }
+            
+            .container {
+                padding: 0 2rem;
+            }
+            
+            .hero {
+                padding: 4rem 0;
+            }
+            
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .hero p {
+                font-size: 1.125rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Desktop (≥992px) */
+        @media (min-width: 992px) {
+            .breakpoint-indicator::after {
+                content: "Desktop (≥992px)";
+            }
+            
+            .container {
+                padding: 0 3rem;
+            }
+            
+            .hero {
+                padding: 6rem 0;
+            }
+            
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        /* Mobile specific (≤576px) */
+        @media (max-width: 576px) {
+            .breakpoint-indicator::after {
+                content: "Mobile (≤576px)";
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .feature-card {
+                text-align: center;
+            }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 48px;
+                min-width: 48px;
+            }
+            
+            .feature-card:hover {
+                transform: none;
+            }
+        }
+        
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1f2937 0%, #111827 50%, #1f2937 100%);
+                color: #f9fafb;
+            }
+            
+            .hero h1 {
+                background: linear-gradient(135deg, #10b981, #06b6d4);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .feature-card {
+                background: #374151;
+                border-color: #4b5563;
+                color: #f9fafb;
+            }
+            
+            .feature-card h3 {
+                color: #f9fafb;
+            }
+            
+            .feature-card p {
+                color: #d1d5db;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Breakpoint Indicator -->
+    <div class="breakpoint-indicator" aria-live="polite"></div>
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1>CropCare AI</h1>
+                <p>
+                    Protect your crops with smart AI technology. Detect plant diseases instantly, 
+                    get expert treatment recommendations, and monitor your crop health with our 
+                    advanced artificial intelligence platform.
+                </p>
+                <div class="cta-buttons">
+                    <button class="btn btn-primary" onclick="testInteraction(this)">
+                        📷 Scan Your Crop
+                    </button>
+                    <button class="btn btn-outline" onclick="testInteraction(this)">
+                        🎤 Talk to AI
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section class="features">
+            <div class="container">
+                <h2>Smart Features for Modern Farming</h2>
+                <div class="features-grid">
+                    <div class="feature-card" tabindex="0">
+                        <div class="feature-icon">📷</div>
+                        <h3>AI-Powered Scanning</h3>
+                        <p>Advanced computer vision technology for instant disease detection with 95% accuracy rate.</p>
+                    </div>
+                    <div class="feature-card" tabindex="0">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Treatment Plans</h3>
+                        <p>Personalized organic and chemical treatment recommendations based on your specific crop needs.</p>
+                    </div>
+                    <div class="feature-card" tabindex="0">
+                        <div class="feature-icon">📈</div>
+                        <h3>Health Tracking</h3>
+                        <p>Monitor crop conditions and track recovery progress with detailed analytics and insights.</p>
+                    </div>
+                    <div class="feature-card" tabindex="0">
+                        <div class="feature-icon">✨</div>
+                        <h3>Smart Assistant</h3>
+                        <p>24/7 AI farming expert with voice interaction and multilingual support for global farmers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        // Test interaction feedback
+        function testInteraction(button) {
+            const originalText = button.textContent;
+            button.textContent = '⏳ Loading...';
+            button.disabled = true;
+            
+            // Haptic feedback for mobile devices
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+                alert('Button interaction test successful! ✅');
+            }, 1500);
+        }
+        
+        // Keyboard navigation test
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                console.log('Tab navigation working ✅');
+            }
+            
+            if (e.key === 'Enter' || e.key === ' ') {
+                const focused = document.activeElement;
+                if (focused.classList.contains('feature-card')) {
+                    alert(`Feature card activated: ${focused.querySelector('h3').textContent} ✅`);
+                }
+            }
+        });
+        
+        // Responsive breakpoint detection
+        function updateBreakpointIndicator() {
+            const width = window.innerWidth;
+            const indicator = document.querySelector('.breakpoint-indicator');
+            
+            if (width <= 576) {
+                indicator.style.background = '#dc2626'; // Red for mobile
+            } else if (width <= 768) {
+                indicator.style.background = '#ea580c'; // Orange for tablet
+            } else if (width <= 992) {
+                indicator.style.background = '#059669'; // Green for laptop
+            } else {
+                indicator.style.background = '#0891b2'; // Blue for desktop
+            }
+        }
+        
+        // Update on load and resize
+        updateBreakpointIndicator();
+        window.addEventListener('resize', updateBreakpointIndicator);
+        
+        // Accessibility announcements
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            
+            setTimeout(() => {
+                document.body.removeChild(announcement);
+            }, 1000);
+        }
+        
+        // Test screen reader announcements
+        setTimeout(() => {
+            announceToScreenReader('CropCare AI responsive design test loaded successfully');
+        }, 1000);
+        
+        // Performance monitoring
+        window.addEventListener('load', () => {
+            const loadTime = performance.now();
+            console.log(`Page loaded in ${Math.round(loadTime)}ms`);
+            
+            // Lighthouse-style performance check
+            if (loadTime < 1000) {
+                console.log('✅ Performance: Excellent (< 1s)');
+            } else if (loadTime < 2500) {
+                console.log('⚠️ Performance: Good (< 2.5s)');
+            } else {
+                console.log('❌ Performance: Needs improvement (> 2.5s)');
+            }
+        });
+        
+        // Touch device detection
+        if ('ontouchstart' in window) {
+            document.body.classList.add('touch-device');
+            console.log('✅ Touch device detected - optimized interactions enabled');
+        }
+        
+        // Network status monitoring
+        function updateNetworkStatus() {
+            if (navigator.onLine) {
+                console.log('✅ Network: Online');
+            } else {
+                console.log('⚠️ Network: Offline - offline features would be available');
+            }
+        }
+        
+        updateNetworkStatus();
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+    </script>
+</body>
+</html>
