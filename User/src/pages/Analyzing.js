@@ -51,7 +51,9 @@ const Analyzing = () => {
         // Call the actual AI service
         let result;
         try {
+          console.log('Calling ML service with crop:', cropType);
           result = await apiService.predictDisease(capturedImage, cropType);
+          console.log('ML service response:', result);
           setProgress(70);
         } catch (apiError) {
           console.warn('AI service failed, using fallback data:', apiError);

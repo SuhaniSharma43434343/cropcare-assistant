@@ -22,14 +22,12 @@ import { useAlerts } from "../components/alerts/AlertProvider";
 import AlertBell from "../components/alerts/AlertBell";
 import AlertCenter from "../components/alerts/AlertCenter";
 import { ALERT_TYPES, PRIORITY_LEVELS } from "../components/alerts/AlertSystem";
-import apiService from "../services/apiService";
 
 const Treatment = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("organic");
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [diagnosisData, setDiagnosisData] = useState(null);
-  const [treatmentData, setTreatmentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { 
     showTreatmentDue, 
@@ -42,7 +40,7 @@ const Treatment = () => {
   useEffect(() => {
     const loadTreatmentData = async () => {
       try {
-        // Get diagnosis result from session storage
+        // Get diagnosis result from session storage (from ML service only)
         const diagnosisResult = sessionStorage.getItem('diagnosisResult');
         
         if (!diagnosisResult) {
@@ -52,23 +50,15 @@ const Treatment = () => {
         }
 
         const parsedDiagnosis = JSON.parse(diagnosisResult);
-        setDiagnosisData(parsedDiagnosis);
-
-        // Use treatment data from AI diagnosis or fetch from API
-        if (parsedDiagnosis.treatment) {
-          setTreatmentData(parsedDiagnosis.treatment);
-        } else {
-          // Try to fetch from API first
-          const apiTreatments = await fetchTreatmentsFromAPI(parsedDiagnosis.name || parsedDiagnosis.disease);
-          if (apiTreatments) {
-            setTreatmentData(apiTreatments);
-          } else {
-            // Fallback: use validated treatment data based on disease
-            const validatedTreatments = getValidatedTreatments(parsedDiagnosis);
-            setTreatmentData(validatedTreatments);
-          }
-        }
         
+        // Validate that this is from ML service
+        if (!parsedDiagnosis.treatment || !parsedDiagnosis.name) {
+          showError('Invalid diagnosis data. Please scan an image again.');
+          navigate('/capture');
+          return;
+        }
+
+        setDiagnosisData(parsedDiagnosis);
         setLoading(false);
       } catch (error) {
         console.error('Error loading treatment data:', error);
@@ -80,130 +70,10 @@ const Treatment = () => {
     loadTreatmentData();
   }, [navigate, showError]);
 
-  // Validated treatment database - only accurate, verified treatments
-  const getValidatedTreatments = (diagnosis) => {
-    const diseaseName = diagnosis.name || diagnosis.disease || '';
-    const diseaseKey = diseaseName.toLowerCase().replace(/\s+/g, '_');
-    
-    // Validated treatment database from AI/ML service
-    const validatedTreatments = {
-      'late_blight': {
-        organic: [
-          {
-            name: "Copper Fungicide (Organic)",
-            dosage: "2-3g per liter of water",
-            frequency: "Every 7-10 days",
-            effectiveness: 85,
-            icon: Shield,
-            instructions: "Apply in early morning or evening. Ensure complete coverage of leaves."
-          },
-          {
-            name: "Neem Oil Spray",
-            dosage: "5ml per liter of water",
-            frequency: "Every 5-7 days",
-            effectiveness: 75,
-            icon: Leaf,
-            instructions: "Mix with mild soap for better adherence. Avoid application in direct sunlight."
-          }
-        ],
-        chemical: [
-          {
-            name: "Mancozeb 75% WP",
-            dosage: "2.5g per liter of water",
-            frequency: "Every 7-10 days",
-            effectiveness: 95,
-            icon: FlaskConical,
-            warning: "Use protective gear. Do not spray near water sources. Wait 7 days before harvest.",
-            instructions: "Apply preventively before disease onset for best results."
-          },
-          {
-            name: "Chlorothalonil",
-            dosage: "2g per liter of water",
-            frequency: "Every 7 days",
-            effectiveness: 90,
-            icon: FlaskConical,
-            warning: "Toxic to fish and aquatic life. Use protective equipment.",
-            instructions: "Rotate with other fungicides to prevent resistance."
-          }
-        ]
-      },
-      'early_blight': {
-        organic: [
-          {
-            name: "Baking Soda Solution",
-            dosage: "1 tbsp + 1L water + few drops soap",
-            frequency: "Every 5-7 days",
-            effectiveness: 70,
-            icon: Droplets,
-            instructions: "Apply in cooler parts of the day to prevent leaf burn."
-          },
-          {
-            name: "Copper Sulfate",
-            dosage: "1g per liter of water",
-            frequency: "Every 10 days",
-            effectiveness: 80,
-            icon: Shield,
-            instructions: "Use sparingly to avoid copper buildup in soil."
-          }
-        ],
-        chemical: [
-          {
-            name: "Azoxystrobin",
-            dosage: "1ml per liter of water",
-            frequency: "Every 14 days",
-            effectiveness: 90,
-            icon: FlaskConical,
-            warning: "Follow resistance management guidelines. Do not exceed recommended dose.",
-            instructions: "Most effective when applied preventively."
-          }
-        ]
-      },
-      // Default fallback treatments
-      'default': {
-        organic: [
-          {
-            name: "Neem Oil Spray",
-            dosage: "5ml per liter of water",
-            frequency: "Every 7 days",
-            effectiveness: 75,
-            icon: Leaf,
-            instructions: "General purpose organic treatment for most fungal diseases."
-          }
-        ],
-        chemical: [
-          {
-            name: "Broad Spectrum Fungicide",
-            dosage: "As per manufacturer instructions",
-            frequency: "Every 7-10 days",
-            effectiveness: 85,
-            icon: FlaskConical,
-            warning: "Always read and follow label instructions.",
-            instructions: "Consult local agricultural extension for specific recommendations."
-          }
-        ]
-      }
-    };
-
-    return validatedTreatments[diseaseKey] || validatedTreatments['default'];
-  };
-
-  // Get current treatments based on validated data
+  // Get current treatments from ML service data only
   const getCurrentTreatments = () => {
-    if (!treatmentData) return [];
-    return treatmentData[activeTab] || [];
-  };
-
-  // Fetch treatments from API if available
-  const fetchTreatmentsFromAPI = async (diseaseName) => {
-    try {
-      const response = await apiService.get(`/diseases/treatment/${encodeURIComponent(diseaseName)}`);
-      if (response.data.success && response.data.treatments) {
-        return response.data.treatments;
-      }
-    } catch (error) {
-      console.warn('Failed to fetch treatments from API, using fallback data');
-    }
-    return null;
+    if (!diagnosisData?.treatment) return [];
+    return diagnosisData.treatment[activeTab] || [];
   };
 
   const treatments = getCurrentTreatments();
@@ -214,7 +84,7 @@ const Treatment = () => {
         <div className="min-h-screen bg-background safe-area-top flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading treatment options...</p>
+            <p className="text-muted-foreground">Loading AI treatment recommendations...</p>
           </div>
         </div>
       </MobileLayout>
@@ -227,8 +97,8 @@ const Treatment = () => {
         <div className="min-h-screen bg-background safe-area-top flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <p className="text-foreground font-medium mb-2">No Diagnosis Found</p>
-            <p className="text-muted-foreground mb-4">Please scan an image first to get treatment recommendations.</p>
+            <p className="text-foreground font-medium mb-2">No AI Diagnosis Found</p>
+            <p className="text-muted-foreground mb-4">Please scan an image first to get AI-powered treatment recommendations.</p>
             <Button onClick={() => navigate('/capture')}>Scan Image</Button>
           </div>
         </div>
@@ -278,10 +148,13 @@ const Treatment = () => {
               <Leaf className="w-6 h-6 text-destructive" />
             </div>
             <div>
-              <h2 className="font-semibold text-foreground">{diagnosisData.name || diagnosisData.disease || 'Disease Detected'}</h2>
+              <h2 className="font-semibold text-foreground">{diagnosisData.name || 'Disease Detected'}</h2>
               <p className="text-sm text-muted-foreground">
                 Confidence: {Math.round((diagnosisData.confidence || 0) * 100)}% • 
                 Severity: {diagnosisData.severity || 'Unknown'}
+                {diagnosisData.analyzed_crop && (
+                  <span className="ml-2">• Crop: {diagnosisData.analyzed_crop}</span>
+                )}
               </p>
             </div>
           </motion.div>

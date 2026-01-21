@@ -102,8 +102,8 @@ export const AlertProvider = ({ children }) => {
   const showDiseaseDetected = useCallback((diseaseName, confidence, cropName) => {
     addAlert({
       type: ALERT_TYPES.DISEASE_DETECTED,
-      title: 'Disease Detected',
-      message: `${diseaseName} detected in ${cropName} (${confidence}% confidence)`,
+      title: `${diseaseName} Detected`,
+      message: `Disease detected in ${cropName} (${confidence}% confidence)`,
       priority: PRIORITY_LEVELS.CRITICAL,
       actions: [
         { label: 'View Treatment', type: 'view_treatment', primary: true },

@@ -63,19 +63,19 @@ const VoiceAssistant = () => {
   const startRecording = async () => {
     try {
       // Request microphone permission
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           sampleRate: 44100
-        } 
+        }
       });
-      
+
       // Check if MediaRecorder is supported
       if (!MediaRecorder.isTypeSupported('audio/webm')) {
         throw new Error('Audio recording not supported in this browser');
       }
-      
+
       const mimeType = "audio/webm";
       mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
@@ -105,11 +105,11 @@ const VoiceAssistant = () => {
       mediaRecorderRef.current.start(1000); // Collect data every second
       setIsListening(true);
       toast.success('Recording started - speak now!');
-      
+
     } catch (error) {
       console.error("Microphone access error:", error);
       let errorMessage = "Could not access microphone. ";
-      
+
       if (error.name === 'NotAllowedError') {
         errorMessage += "Please allow microphone access and try again.";
       } else if (error.name === 'NotFoundError') {
@@ -119,7 +119,7 @@ const VoiceAssistant = () => {
       } else {
         errorMessage += "Please check your microphone settings.";
       }
-      
+
       toast.error(errorMessage);
       setIsListening(false);
       setIsProcessing(false);
@@ -142,20 +142,20 @@ const VoiceAssistant = () => {
   const handleAudioTranscription = async (audioBlob) => {
     try {
       setIsProcessing(true);
-      
+
       // Convert blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
-      
+
       reader.onloadend = async () => {
         try {
           const base64Audio = reader.result.split(',')[1];
-          
+
           // Check if we have a valid base64 string
           if (!base64Audio || base64Audio.length < 100) {
             throw new Error('Audio recording too short or invalid');
           }
-          
+
           // Try transcription with fallback
           let transcribedText;
           try {
@@ -169,7 +169,7 @@ const VoiceAssistant = () => {
               throw new Error('Speech recognition not available');
             }
           }
-          
+
           if (transcribedText && transcribedText.trim()) {
             const cleanText = transcribedText.trim();
             setInputText(cleanText);
@@ -185,44 +185,44 @@ const VoiceAssistant = () => {
           setIsProcessing(false);
         }
       };
-      
+
       reader.onerror = () => {
         console.error('FileReader error');
         toast.error('Failed to process audio file');
         setIsProcessing(false);
       };
-      
+
     } catch (error) {
       console.error("Audio processing error:", error);
       toast.error("Failed to process audio.");
       setIsProcessing(false);
     }
   };
-  
+
   // Fallback speech recognition using Web Speech API
   const fallbackSpeechRecognition = () => {
     return new Promise((resolve, reject) => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
+
       if (!SpeechRecognition) {
         reject(new Error('Speech recognition not supported'));
         return;
       }
-      
+
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
-      
+
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         resolve(transcript);
       };
-      
+
       recognition.onerror = (event) => {
         reject(new Error(`Speech recognition error: ${event.error}`));
       };
-      
+
       recognition.start();
     });
   };
@@ -271,7 +271,7 @@ const VoiceAssistant = () => {
 
   const getFallbackResponse = (question) => {
     const lowerQuestion = question.toLowerCase();
-    
+
     if (lowerQuestion.includes('blight') || lowerQuestion.includes('disease')) {
       return "For plant diseases like blight, ensure proper spacing for air circulation, water at the base to keep leaves dry, and apply copper-based fungicides preventatively. Remove infected leaves immediately.";
     }
@@ -284,7 +284,7 @@ const VoiceAssistant = () => {
     if (lowerQuestion.includes('water') || lowerQuestion.includes('irrigation')) {
       return "Water deeply but less frequently. Water early morning or evening to reduce evaporation. Ensure good drainage to prevent root rot. Mulch around plants to retain moisture.";
     }
-    
+
     return "I'm currently in offline mode. For detailed agricultural advice, please ensure you have an internet connection. In general, maintain proper plant spacing, regular watering, and monitor for signs of disease or pests.";
   };
 
@@ -298,7 +298,7 @@ const VoiceAssistant = () => {
 
     setIsLiveMode(true);
     setIsConnected(false);
-    
+
     toast.info('Starting live session...');
 
     try {
@@ -313,9 +313,13 @@ const VoiceAssistant = () => {
       });
 
       // Initialize audio context
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)({ 
-        sampleRate: 16000 
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)({
+        sampleRate: 16000
       });
+
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
 
       // Connect to live session (mock for now)
       liveSessionRef.current = await connectToLiveSession("English", {
@@ -334,29 +338,34 @@ const VoiceAssistant = () => {
 
       // Set up audio processing
       const source = audioContextRef.current.createMediaStreamSource(stream);
-      
+
       // Use AudioWorklet if available, otherwise fall back to ScriptProcessor
       if (audioContextRef.current.audioWorklet) {
         // Modern approach - would need AudioWorklet implementation
         console.log('AudioWorklet available but not implemented in this demo');
       }
-      
+
       // Fallback to ScriptProcessor (deprecated but widely supported)
       processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
 
       processorRef.current.onaudioprocess = (e) => {
         const inputData = e.inputBuffer.getChannelData(0);
-        
+
+        // Debug logging (throttled)
+        if (Math.random() < 0.01) {
+          console.log("Audio Process Tick. Max amp:", Math.max(...inputData), "Ctx state:", audioContextRef.current?.state);
+        }
+
         // Calculate volume level for visualization
         const sum = inputData.reduce((a, b) => a + Math.abs(b), 0);
         const avg = sum / inputData.length;
         setVolumeLevel(Math.min(avg * 10, 1));
-        
+
         // Process audio for live session
         if (liveSessionRef.current && liveSessionRef.current.sendRealtimeInput) {
           const pcm16 = floatTo16BitPCM(inputData);
           const base64Audio = arrayBufferToBase64(pcm16);
-          
+
           liveSessionRef.current.sendRealtimeInput({
             media: {
               mimeType: "audio/pcm;rate=16000",
@@ -375,7 +384,7 @@ const VoiceAssistant = () => {
 
     } catch (error) {
       console.error("Failed to start live session:", error);
-      
+
       let errorMessage = "Could not start live call. ";
       if (error.name === 'NotAllowedError') {
         errorMessage += "Please allow microphone access.";
@@ -384,7 +393,7 @@ const VoiceAssistant = () => {
       } else {
         errorMessage += "Please check your microphone settings.";
       }
-      
+
       toast.error(errorMessage);
       stopLiveSession();
     }
@@ -427,6 +436,7 @@ const VoiceAssistant = () => {
   };
 
   const handleLiveMessage = async (message) => {
+    console.log("RX LIVE MSG:", JSON.stringify(message, null, 2));
     if (message.serverContent?.modelTurn?.parts) {
       for (const part of message.serverContent.modelTurn.parts) {
         if (part.inlineData && part.inlineData.mimeType.startsWith("audio/pcm")) {
@@ -507,8 +517,12 @@ const VoiceAssistant = () => {
     return float32Array;
   }
 
+
+
   return (
     <MobileLayout showNav={false} fullWidth={true}>
+
+
       <div className={`flex flex-col h-screen overflow-hidden relative ${isLiveMode ? "text-white" : "bg-background safe-area-top"}`}>
         {isLiveMode && (
           <div

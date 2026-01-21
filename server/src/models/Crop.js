@@ -1,38 +1,4 @@
-const mongoose = require('mongoose');
+// Crop model deprecated - all crop identification now comes from AI/ML analysis
+// This file is kept for backward compatibility but should not be used
 
-const cropSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  type: {
-    type: String,
-    required: true
-  },
-  plantingDate: {
-    type: Date,
-    required: true
-  },
-  expectedHarvestDate: {
-    type: Date
-  },
-  status: {
-    type: String,
-    enum: ['planted', 'growing', 'flowering', 'harvested'],
-    default: 'planted'
-  },
-  location: {
-    latitude: Number,
-    longitude: Number
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  }
-}, {
-  timestamps: true
-});
-
-module.exports = mongoose.model('Crop', cropSchema);
+module.exports = null;

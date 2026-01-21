@@ -141,24 +141,14 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 gap-3 mb-6"
+          className="mb-6"
         >
-          <button
-            onClick={() => {
-              handleScanClick();
-              showInfo('Camera initialized successfully!');
-            }}
-            className="flex flex-col items-center justify-center h-auto py-6 gap-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl transition-all duration-200 shadow-lg"
-          >
-            <Camera className="w-8 h-8" />
-            <span className="font-medium">Scan Crop</span>
-          </button>
           <button
             onClick={() => {
               navigate("/voice");
               showSuccess('Voice assistant activated!');
             }}
-            className="flex flex-col items-center justify-center h-auto py-6 gap-3 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-2xl transition-all duration-200"
+            className="w-full flex flex-col items-center justify-center h-auto py-6 gap-3 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-2xl transition-all duration-200"
           >
             <Mic className="w-8 h-8" />
             <span className="font-medium">Talk to AI</span>

@@ -1,9 +1,21 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 class APIService {
-  async get(endpoint) {
+  async get(endpoint, requireAuth = true) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api${endpoint}`);
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (requireAuth) {
+        const token = localStorage.getItem('cropcare_token');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
+        headers
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -16,11 +28,17 @@ class APIService {
 
   async post(endpoint, data) {
     try {
+      const token = localStorage.getItem('cropcare_token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(data)
       });
       if (!response.ok) {
@@ -48,12 +66,15 @@ class APIService {
         throw new Error('Invalid image format');
       }
 
+      // For ML prediction, temporarily no auth required for development
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+
       const response = await fetch(`${API_BASE_URL}/api/ml/predict`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           crop: cropType.toLowerCase(),
           imageBase64: cleanBase64
@@ -92,15 +113,20 @@ class APIService {
     }
   }
 
-  async checkHealth() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/health`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Health check failed:', error);
-      return { status: 'ERROR', backend: 'DOWN', ml_service: 'DOWN' };
-    }
+  async getDiseaseBreakdown() {
+    return this.get('/dashboard/disease-breakdown', false);
+  }
+
+  async getDashboardSummary() {
+    return this.get('/dashboard/summary', false);
+  }
+
+  async getHealthTrend() {
+    return this.get('/dashboard/health-trend', false);
+  }
+
+  async getRecentDiagnoses() {
+    return this.get('/dashboard/recent-diagnoses', false);
   }
 
 

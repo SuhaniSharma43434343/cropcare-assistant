@@ -1,9 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
-  TrendingUp, 
-  TrendingDown, 
   Calendar, 
   Bell, 
   Leaf, 
@@ -14,32 +12,40 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from "recharts";
+import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import AlertBell from "../components/alerts/AlertBell";
 import AlertCenter from "../components/alerts/AlertCenter";
 import { useAlerts } from "../components/alerts/AlertProvider";
+import apiService from "../services/apiService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const [diseaseData, setDiseaseData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { showTreatmentDue, showSuccess } = useAlerts();
 
-  const healthTrendData = [
-    { day: "Mon", health: 85 },
-    { day: "Tue", health: 82 },
-    { day: "Wed", health: 78 },
-    { day: "Thu", health: 75 },
-    { day: "Fri", health: 80 },
-    { day: "Sat", health: 85 },
-    { day: "Sun", health: 88 },
-  ];
+  useEffect(() => {
+    const fetchDiseaseBreakdown = async () => {
+      try {
+        const data = await apiService.getDiseaseBreakdown();
+        // Transform data to match chart format: { name, count }
+        const transformedData = data.map(item => ({
+          name: item.disease,
+          count: item.count
+        }));
+        setDiseaseData(transformedData);
+      } catch (error) {
+        console.error('Failed to fetch disease breakdown:', error);
+        // Fallback to empty array
+        setDiseaseData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const diseaseData = [
-    { name: "Late Blight", count: 4 },
-    { name: "Powdery Mildew", count: 2 },
-    { name: "Leaf Spot", count: 3 },
-    { name: "Root Rot", count: 1 },
-  ];
+    fetchDiseaseBreakdown();
+  }, []);
 
   const recentDiagnoses = [
     {
@@ -94,27 +100,23 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 gap-3 mb-6"
+          className="grid grid-cols-1 gap-3 mb-6"
         >
           <div className="glass-card rounded-2xl p-4 shadow-card">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">Overall Health</span>
-              <TrendingUp className="w-4 h-4 text-success" />
-            </div>
-            <p className="text-2xl font-bold text-foreground">88%</p>
-            <p className="text-xs text-success">+5% from last week</p>
-          </div>
-          <div className="glass-card rounded-2xl p-4 shadow-card">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">Active Issues</span>
+              <span className="text-xs text-muted-foreground">Disease Detections</span>
               <AlertTriangle className="w-4 h-4 text-warning" />
             </div>
-            <p className="text-2xl font-bold text-foreground">3</p>
-            <p className="text-xs text-warning">2 need attention</p>
+            <p className="text-2xl font-bold text-foreground">
+              {loading ? '...' : diseaseData.reduce((sum, d) => sum + d.count, 0)}
+            </p>
+            <p className="text-xs text-muted-foreground">This month</p>
           </div>
         </motion.div>
 
-        {/* Health Trend Chart */}
+
+
+        {/* Disease Statistics */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -122,81 +124,46 @@ const Dashboard = () => {
           className="glass-card rounded-2xl p-4 shadow-card mb-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">Health Trend</h2>
-            <span className="text-xs text-muted-foreground">Last 7 days</span>
-          </div>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={healthTrendData}>
-                <XAxis 
-                  dataKey="day" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis 
-                  hide 
-                  domain={[60, 100]} 
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="health"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 0, r: 4 }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Disease Statistics */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass-card rounded-2xl p-4 shadow-card mb-6"
-        >
-          <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-foreground">Disease Breakdown</h2>
             <span className="text-xs text-muted-foreground">This month</span>
           </div>
           <div className="h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={diseaseData} layout="vertical">
-                <XAxis type="number" hide />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                  width={80}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Bar 
-                  dataKey="count" 
-                  fill="hsl(var(--primary))" 
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              </div>
+            ) : diseaseData.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-sm text-muted-foreground">No disease detections this month</div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={diseaseData} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                    width={80}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="count" 
+                    fill="hsl(var(--primary))" 
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </motion.div>
 

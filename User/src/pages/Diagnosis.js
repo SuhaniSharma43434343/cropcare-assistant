@@ -122,18 +122,7 @@ const Diagnosis = () => {
             </motion.div>
           </div>
 
-          {/* Confidence Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-              <span className="text-sm font-semibold">{Math.round((diagnosis.confidence || 0) * 100)}% Match</span>
-            </div>
-          </motion.div>
+          {/* Confidence Badge - REMOVED */}
         </div>
 
         {/* Disease Info */}
@@ -163,11 +152,16 @@ const Diagnosis = () => {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-2xl font-display font-bold text-foreground">
-                  {diagnosis.name || diagnosis.disease || 'Disease Detected'}
+                  {diagnosis.name || 'Disease Detected'}
                 </h2>
               </div>
               <p className="text-muted-foreground text-sm">
-                Plant Disease • Confidence: {Math.round((diagnosis.confidence || 0) * 100)}%
+                Plant Disease
+                {diagnosis.model_version && (
+                  <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                    AI Model {diagnosis.model_version}
+                  </span>
+                )}
               </p>
             </div>
             <span
