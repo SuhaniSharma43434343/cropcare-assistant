@@ -28,7 +28,7 @@ const UserProfile = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.farmDetails?.phone || '',
+    phone: user?.phone || '',
     location: user?.farmDetails?.location || '',
     farmSize: user?.farmDetails?.size || '',
     selectedCrops: user?.selectedCrops || []
@@ -45,24 +45,51 @@ const UserProfile = ({ isOpen, onClose }) => {
     setFormData({ ...formData, selectedCrops });
   };
 
-  const handleSave = () => {
+  const handleCropSave = (selectedCrops) => {
+    setFormData({ ...formData, selectedCrops });
+    // Auto-save the crops to profile
     const profileData = {
       name: formData.name,
-      selectedCrops: formData.selectedCrops,
+      email: formData.email,
+      selectedCrops: selectedCrops,
       farmDetails: {
-        phone: formData.phone,
         location: formData.location,
         size: formData.farmSize
       }
     };
     
     const result = updateProfile(profileData);
+    
     if (result.success) {
-      showSuccess('Profile updated successfully!');
-      setIsEditing(false);
+      showSuccess('Crops updated successfully!');
       setShowCropSelection(false);
     } else {
-      showError(result.error);
+      showError(result.error || 'Failed to update crops');
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const profileData = {
+        name: formData.name,
+        email: formData.email,
+        selectedCrops: formData.selectedCrops,
+        farmDetails: {
+          location: formData.location,
+          size: formData.farmSize
+        }
+      };
+      
+      const result = updateProfile(profileData);
+      if (result.success) {
+        showSuccess('Profile updated successfully!');
+        setIsEditing(false);
+        setShowCropSelection(false);
+      } else {
+        showError(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      showError('An error occurred while updating profile');
     }
   };
 
@@ -76,7 +103,7 @@ const UserProfile = ({ isOpen, onClose }) => {
     setFormData({
       name: user?.name || '',
       email: user?.email || '',
-      phone: user?.farmDetails?.phone || '',
+      phone: user?.phone || '',
       location: user?.farmDetails?.location || '',
       farmSize: user?.farmDetails?.size || '',
       selectedCrops: user?.selectedCrops || []
@@ -112,7 +139,7 @@ const UserProfile = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold">Profile</h2>
-                <p className="text-sm opacity-90">{user?.email}</p>
+                <p className="text-sm opacity-90">{user?.phone}</p>
               </div>
             </div>
             <Button
@@ -137,7 +164,7 @@ const UserProfile = ({ isOpen, onClose }) => {
                   <Camera className="w-4 h-4" />
                 </button>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mt-3">{user?.name}</h3>
+              <h3 className="text-xl font-semibold text-foreground mt-3">{user?.name || 'User'}</h3>
               <p className="text-sm text-muted-foreground">
                 Member since {new Date(user?.createdAt).toLocaleDateString()}
               </p>
@@ -172,9 +199,19 @@ const UserProfile = ({ isOpen, onClose }) => {
                   <Mail className="w-4 h-4" />
                   Email Address
                 </label>
-                <p className="px-3 py-2 bg-muted/30 rounded-lg text-foreground">
-                  {user?.email}
-                </p>
+                {isEditing ? (
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                ) : (
+                  <p className="px-3 py-2 bg-muted/30 rounded-lg text-foreground">
+                    {user?.email || 'Not provided'}
+                  </p>
+                )}
               </div>
 
               {/* Phone */}
@@ -183,19 +220,9 @@ const UserProfile = ({ isOpen, onClose }) => {
                   <Phone className="w-4 h-4" />
                   Phone Number
                 </label>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                ) : (
-                  <p className="px-3 py-2 bg-muted/30 rounded-lg text-foreground">
-                    {user?.farmDetails?.phone || 'Not provided'}
-                  </p>
-                )}
+                <p className="px-3 py-2 bg-muted/30 rounded-lg text-foreground">
+                  {user?.phone}
+                </p>
               </div>
 
               {/* Location */}
@@ -248,39 +275,67 @@ const UserProfile = ({ isOpen, onClose }) => {
               </div>
 
               {/* Selected Crops */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Sprout className="w-4 h-4" />
                   Selected Crops
                 </label>
-                <div className="px-3 py-2 bg-muted/30 rounded-lg">
+                
+                {/* Current Crops Display */}
+                <div className="px-4 py-3 bg-muted/30 rounded-lg min-h-[4rem] border">
                   {user?.selectedCrops && user.selectedCrops.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {user.selectedCrops.map((cropId) => {
-                        const crop = CROP_OPTIONS.find(c => c.id === cropId);
-                        return crop ? (
-                          <span
-                            key={cropId}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
-                          >
-                            <span>{crop.icon}</span>
-                            {crop.name}
-                          </span>
-                        ) : null;
-                      })}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Your Crops ({user.selectedCrops.length}/6)
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {user.selectedCrops.map((cropId) => {
+                          const crop = CROP_OPTIONS.find(c => c.id === cropId);
+                          return crop ? (
+                            <div
+                              key={cropId}
+                              className="flex items-center gap-2 p-2 bg-primary/10 text-primary rounded-lg border border-primary/20"
+                            >
+                              <span className="text-lg">{crop.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-medium text-sm">{crop.name}</span>
+                                <p className="text-xs text-primary/70 truncate">{crop.description}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              key={cropId}
+                              className="flex items-center gap-2 p-2 bg-gray-100 text-gray-600 rounded-lg"
+                            >
+                              <span className="text-lg">❓</span>
+                              <div className="flex-1">
+                                <span className="font-medium text-sm">{cropId}</span>
+                                <p className="text-xs text-gray-500">Unknown crop</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-foreground">No crops selected</p>
+                    <div className="flex flex-col items-center justify-center h-16 text-muted-foreground">
+                      <Sprout className="w-6 h-6 mb-1 opacity-50" />
+                      <p className="text-sm">No crops selected</p>
+                    </div>
                   )}
                 </div>
+                
+                {/* Change Crops Button */}
                 <Button
                   onClick={() => setShowCropSelection(true)}
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2"
+                  className="w-full"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Change Crops
+                  {user?.selectedCrops && user.selectedCrops.length > 0 ? 'Change Crops' : 'Add Crops'}
                 </Button>
               </div>
             </div>
@@ -351,6 +406,7 @@ const UserProfile = ({ isOpen, onClose }) => {
                 <CropSelection
                   selectedCrops={formData.selectedCrops}
                   onCropChange={handleCropChange}
+                  onSave={handleCropSave}
                 />
               </motion.div>
             </motion.div>

@@ -14,19 +14,29 @@ import {
   CheckCircle,
   Sparkles,
   Bell,
-  Loader2
+  Loader2,
+  Calendar,
+  List
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
 import { useAlerts } from "../components/alerts/AlertProvider";
 import AlertBell from "../components/alerts/AlertBell";
 import AlertCenter from "../components/alerts/AlertCenter";
+import ReminderModal from "../components/reminders/ReminderModal";
+import ReminderList from "../components/reminders/ReminderList";
+import ReminderAlert from "../components/reminders/ReminderAlert";
+import WeatherRecommendation from "../components/WeatherRecommendation";
+import reminderService from "../services/reminderService";
 import { ALERT_TYPES, PRIORITY_LEVELS } from "../components/alerts/AlertSystem";
 
 const Treatment = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("organic");
   const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [showReminderList, setShowReminderList] = useState(false);
+  const [selectedTreatment, setSelectedTreatment] = useState(null);
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { 
@@ -69,6 +79,11 @@ const Treatment = () => {
 
     loadTreatmentData();
   }, [navigate, showError]);
+
+  const handleSetReminder = (treatment) => {
+    setSelectedTreatment(treatment);
+    setShowReminderModal(true);
+  };
 
   // Get current treatments from ML service data only
   const getCurrentTreatments = () => {
@@ -113,12 +128,6 @@ const Treatment = () => {
     "Keep children and pets away during application",
   ];
 
-  const weatherTip = {
-    icon: Cloud,
-    title: "Weather-Based Recommendation",
-    description: "Rain expected in 2 days. Apply treatment today for best absorption. Avoid spraying if rain is within 6 hours.",
-  };
-
   return (
     <MobileLayout showNav={false}>
       <div className="min-h-screen bg-background safe-area-top">
@@ -134,28 +143,48 @@ const Treatment = () => {
           
           <h1 className="text-lg font-display font-semibold">Treatment Plan</h1>
           
-          <AlertBell onClick={() => setShowAlertCenter(true)} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setShowReminderList(true)}
+              className="relative"
+            >
+              <List className="w-5 h-5" />
+            </Button>
+            <AlertBell onClick={() => setShowAlertCenter(true)} />
+          </div>
         </div>
 
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 max-w-6xl mx-auto">
           {/* Disease Reference */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 p-4 glass-card rounded-2xl mb-6"
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 glass-card rounded-2xl mb-6"
           >
-            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
               <Leaf className="w-6 h-6 text-destructive" />
             </div>
-            <div>
-              <h2 className="font-semibold text-foreground">{diagnosisData.name || 'Disease Detected'}</h2>
-              <p className="text-sm text-muted-foreground">
-                Confidence: {Math.round((diagnosisData.confidence || 0) * 100)}% • 
-                Severity: {diagnosisData.severity || 'Unknown'}
+            <div className="flex-1 min-w-0">
+              <h2 className="font-semibold text-foreground text-lg">{diagnosisData.name || 'Disease Detected'}</h2>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-sm text-muted-foreground">
+                  Confidence: {Math.round((diagnosisData.confidence || 0) * 100)}%
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-sm text-muted-foreground">
+                  Severity: {diagnosisData.severity || 'Unknown'}
+                </span>
                 {diagnosisData.analyzed_crop && (
-                  <span className="ml-2">• Crop: {diagnosisData.analyzed_crop}</span>
+                  <>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground">
+                      Crop: {diagnosisData.analyzed_crop}
+                    </span>
+                  </>
                 )}
-              </p>
+              </div>
             </div>
           </motion.div>
 
@@ -163,7 +192,7 @@ const Treatment = () => {
           <div className="flex gap-2 mb-6">
             <Button
               variant={activeTab === "organic" ? "gradient" : "secondary"}
-              className="flex-1"
+              className="flex-1 sm:flex-none sm:px-8"
               onClick={() => setActiveTab("organic")}
             >
               <Leaf className="w-4 h-4 mr-2" />
@@ -171,7 +200,7 @@ const Treatment = () => {
             </Button>
             <Button
               variant={activeTab === "chemical" ? "gradient" : "secondary"}
-              className="flex-1"
+              className="flex-1 sm:flex-none sm:px-8"
               onClick={() => setActiveTab("chemical")}
             >
               <FlaskConical className="w-4 h-4 mr-2" />
@@ -179,27 +208,8 @@ const Treatment = () => {
             </Button>
           </div>
 
-          {/* AI Weather Tip */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-info/10 border border-info/30 rounded-2xl p-4 mb-6"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-info/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-info" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Cloud className="w-4 h-4" />
-                  {weatherTip.title}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {weatherTip.description}
-                </p>
-              </div>
-            </div>
-          </motion.div>
+          {/* AI Weather Recommendation */}
+          <WeatherRecommendation />
 
           {/* Treatment Cards */}
           <AnimatePresence mode="wait">
@@ -208,49 +218,49 @@ const Treatment = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-4 mb-6"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6"
             >
               {treatments.map((treatment, index) => {
-                const IconComponent = treatment.icon || Leaf; // Fallback to Leaf icon
+                const IconComponent = treatment.icon || Leaf;
                 return (
                   <motion.div
                     key={treatment.name}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="glass-card rounded-2xl p-4 shadow-card"
+                    className="glass-card rounded-2xl p-4 shadow-card h-full"
                   >
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    <div className="flex items-start gap-4 h-full">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         activeTab === "organic" ? "bg-success/10" : "bg-warning/10"
                       }`}>
                         <IconComponent className={`w-6 h-6 ${
                           activeTab === "organic" ? "text-success" : "text-warning"
                         }`} />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground mb-2">{treatment.name}</h3>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground mb-3 text-lg">{treatment.name}</h3>
                         
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-3 text-sm">
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <Droplets className="w-4 h-4" />
-                            <span>Dosage: {treatment.dosage}</span>
+                            <Droplets className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">Dosage: {treatment.dosage}</span>
                           </div>
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="w-4 h-4" />
-                            <span>Apply {treatment.frequency}</span>
+                            <Clock className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">Apply {treatment.frequency}</span>
                           </div>
                           {treatment.instructions && (
-                            <div className="flex items-start gap-2 text-muted-foreground mt-2">
+                            <div className="flex items-start gap-2 text-muted-foreground">
                               <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs">{treatment.instructions}</span>
+                              <span className="text-xs leading-relaxed">{treatment.instructions}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Effectiveness Bar */}
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs mb-1">
+                        <div className="mt-4">
+                          <div className="flex justify-between text-xs mb-2">
                             <span className="text-muted-foreground">Effectiveness</span>
                             <span className="text-foreground font-medium">{treatment.effectiveness}%</span>
                           </div>
@@ -266,11 +276,24 @@ const Treatment = () => {
                           </div>
                         </div>
 
+                        {/* Set Reminder Button */}
+                        <div className="mt-4">
+                          <Button
+                            onClick={() => handleSetReminder(treatment)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-primary border-primary hover:bg-primary/10"
+                          >
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Set Reminder
+                          </Button>
+                        </div>
+
                         {/* Warning for chemical */}
                         {treatment.warning && (
-                          <div className="mt-3 flex items-start gap-2 p-2 bg-destructive/10 rounded-lg">
+                          <div className="mt-3 flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
                             <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
-                            <span className="text-xs text-destructive">{treatment.warning}</span>
+                            <span className="text-xs text-destructive leading-relaxed">{treatment.warning}</span>
                           </div>
                         )}
                       </div>
@@ -288,11 +311,11 @@ const Treatment = () => {
             transition={{ delay: 0.4 }}
             className="bg-warning/5 border border-warning/20 rounded-2xl p-4 mb-6"
           >
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-4">
               <Shield className="w-5 h-5 text-warning" />
               <h3 className="font-semibold text-foreground">Safety Guidelines</h3>
             </div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {safetyTips.map((tip, index) => (
                 <div key={index} className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
@@ -303,46 +326,50 @@ const Treatment = () => {
           </motion.div>
 
           {/* Action Buttons */}
-          <div className="space-y-3 pb-safe">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-safe">
             <Button 
               className="w-full" 
               size="lg"
-              onClick={() => {
-                showTreatmentDue('Neem Oil Spray', 'Tomato', '2 hours');
-                showSuccess('Treatment schedule started successfully!');
-              }}
+              onClick={() => setShowReminderList(true)}
             >
-              Start Treatment Schedule
+              <Bell className="w-4 h-4 mr-2" />
+              View Active Reminders
             </Button>
             <Button 
               variant="outline" 
               className="w-full" 
               size="lg"
               onClick={() => {
-                showInfo('Reminders have been set for your treatment schedule');
+                showInfo('Set reminders for individual treatments using the "Set Reminder" button on each treatment card.');
               }}
             >
-              Set Reminders
-            </Button>
-            <Button 
-              variant="warning" 
-              className="w-full" 
-              size="lg"
-              onClick={() => {
-                showWeatherWarning('Heavy Rain', 'Rain expected in 2 hours. Consider postponing spray application.');
-              }}
-            >
-              Demo Weather Alert
+              <List className="w-4 h-4 mr-2" />
+              How to Set Reminders
             </Button>
           </div>
         </div>
       </div>
       
-      {/* Alert Center Modal */}
+      {/* Modals */}
       <AlertCenter 
         isOpen={showAlertCenter} 
         onClose={() => setShowAlertCenter(false)} 
       />
+      
+      <ReminderModal
+        isOpen={showReminderModal}
+        onClose={() => setShowReminderModal(false)}
+        treatment={selectedTreatment}
+        diseaseInfo={diagnosisData}
+      />
+      
+      <ReminderList
+        isOpen={showReminderList}
+        onClose={() => setShowReminderList(false)}
+      />
+      
+      {/* Global Reminder Alert */}
+      <ReminderAlert />
     </MobileLayout>
   );
 };

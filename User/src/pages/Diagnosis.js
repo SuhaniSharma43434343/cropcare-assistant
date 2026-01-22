@@ -88,159 +88,155 @@ const Diagnosis = () => {
           </div>
         </div>
 
-        {/* Image with Highlight */}
-        <div className="relative mx-4 mt-4 rounded-2xl overflow-hidden shadow-card">
-          <div className="aspect-[4/3] bg-gradient-to-br from-muted to-secondary flex items-center justify-center relative">
-            {capturedImage ? (
-              <img 
-                src={capturedImage} 
-                alt="Captured crop" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Leaf className="w-32 h-32 text-primary/30" />
-            )}
-            
-            {/* Affected Area Highlight */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              className="absolute top-1/3 left-1/3 w-24 h-24"
-            >
-              <div className="absolute inset-0 border-2 border-destructive rounded-full animate-pulse-ring" />
-              <div className="absolute inset-2 border-2 border-dashed border-destructive/60 rounded-full" />
-            </motion.div>
+        {/* Image Preview and Disease Info */}
+        <div className="px-4 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Compact Image Preview */}
+            <div className="lg:w-1/3">
+              <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-muted to-secondary">
+                <div className="aspect-square lg:aspect-[4/3] flex items-center justify-center relative">
+                  {capturedImage ? (
+                    <img 
+                      src={capturedImage} 
+                      alt="Captured crop" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Leaf className="w-16 h-16 text-primary/30" />
+                  )}
+                  
+                  {/* Affected Area Highlights */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="absolute top-1/3 left-1/3 w-12 h-12 lg:w-16 lg:h-16"
+                  >
+                    <div className="absolute inset-0 border-2 border-destructive rounded-full animate-pulse-ring" />
+                    <div className="absolute inset-1 border-2 border-dashed border-destructive/60 rounded-full" />
+                  </motion.div>
+                </div>
+              </div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              className="absolute bottom-1/4 right-1/4 w-16 h-16"
-            >
-              <div className="absolute inset-0 border-2 border-warning rounded-full animate-pulse-ring" />
-            </motion.div>
+            {/* Disease Details */}
+            <div className="lg:w-2/3 space-y-6">
+              {/* Analyzed Crop Display */}
+              {diagnosis.analyzedCrop && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="p-4 bg-primary/10 border border-primary/20 rounded-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{diagnosis.analyzedCrop.name === 'Tomato' ? '🍅' : diagnosis.analyzedCrop.name === 'Wheat' ? '🌾' : diagnosis.analyzedCrop.name === 'Corn' ? '🌽' : diagnosis.analyzedCrop.name === 'Potato' ? '🥔' : diagnosis.analyzedCrop.name === 'Rice' ? '🌾' : diagnosis.analyzedCrop.name === 'Pepper' ? '🌶️' : '🌱'}</span>
+                    <div>
+                      <p className="text-sm font-medium text-primary">Analyzed Crop</p>
+                      <p className="text-lg font-semibold text-foreground">{diagnosis.analyzedCrop.name}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Disease Name & Severity */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-2xl lg:text-3xl font-display font-bold text-foreground mb-2">
+                      {diagnosis.name || 'Disease Detected'}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Plant Disease</span>
+                      {diagnosis.model_version && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                          AI Model {diagnosis.model_version}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className={`px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap ${getSeverityColor(
+                      diagnosis.severity
+                    )}`}
+                  >
+                    {diagnosis.severity || 'Unknown'} Severity
+                  </span>
+                </div>
+
+                {/* Warning Banner */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-warning/10 border border-warning/30 rounded-xl p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Immediate Action Required
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This disease spreads rapidly. Start treatment within 24-48 hours for best results.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Description */}
+                <div>
+                  <h3 className="text-base font-semibold text-foreground mb-3">About this Disease</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {diagnosis.description}
+                  </p>
+                </div>
+
+                {/* Symptoms */}
+                <div>
+                  <h3 className="text-base font-semibold text-foreground mb-3">Identified Symptoms</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(diagnosis.symptoms || ['Disease symptoms detected']).map((symptom, index) => (
+                      <motion.div
+                        key={symptom}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + index * 0.1 }}
+                        className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-destructive flex-shrink-0" />
+                        <span className="text-sm text-foreground">{symptom}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Confidence Badge - REMOVED */}
         </div>
 
-        {/* Disease Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="px-4 py-6"
-        >
-          {/* Analyzed Crop Display */}
-          {diagnosis.analyzedCrop && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{diagnosis.analyzedCrop.name === 'Tomato' ? '🍅' : diagnosis.analyzedCrop.name === 'Wheat' ? '🌾' : diagnosis.analyzedCrop.name === 'Corn' ? '🌽' : diagnosis.analyzedCrop.name === 'Potato' ? '🥔' : diagnosis.analyzedCrop.name === 'Rice' ? '🌾' : diagnosis.analyzedCrop.name === 'Pepper' ? '🌶️' : '🌱'}</span>
-                <span className="text-sm font-medium text-primary">Analyzed Crop: {diagnosis.analyzedCrop.name}</span>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Disease Name & Severity */}
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-2xl font-display font-bold text-foreground">
-                  {diagnosis.name || 'Disease Detected'}
-                </h2>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                Plant Disease
-                {diagnosis.model_version && (
-                  <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    AI Model {diagnosis.model_version}
-                  </span>
-                )}
-              </p>
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium border ${getSeverityColor(
-                diagnosis.severity
-              )}`}
-            >
-              {diagnosis.severity || 'Unknown'}
-            </span>
-          </div>
-
-          {/* Warning Banner */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="bg-warning/10 border border-warning/30 rounded-2xl p-4 mb-6"
-          >
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Immediate Action Required
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  This disease spreads rapidly. Start treatment within 24-48 hours for best results.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Description */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-foreground mb-2">About this Disease</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {diagnosis.description}
-            </p>
-          </div>
-
-          {/* Symptoms */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Identified Symptoms</h3>
-            <div className="space-y-2">
-              {(diagnosis.symptoms || ['Disease symptoms detected']).map((symptom, index) => (
-                <motion.div
-                  key={symptom}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl"
-                >
-                  <div className="w-2 h-2 rounded-full bg-destructive" />
-                  <span className="text-sm text-foreground">{symptom}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
           {/* Action Buttons */}
-          <div className="space-y-3 pb-8">
-            <Button
-              variant="gradient"
-              size="xl"
-              className="w-full"
-              onClick={() => navigate("/treatment")}
-            >
-              View Treatment Options
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full"
-              onClick={() => navigate("/voice")}
-            >
-              Ask AI Assistant
-            </Button>
+          <div className="px-4 pb-8">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="gradient"
+                size="xl"
+                className="flex-1"
+                onClick={() => navigate("/treatment")}
+              >
+                View Treatment Options
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="sm:w-auto px-6"
+                onClick={() => navigate("/voice")}
+              >
+                Ask AI Assistant
+              </Button>
+            </div>
           </div>
-        </motion.div>
       </div>
     </MobileLayout>
   );

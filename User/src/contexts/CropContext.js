@@ -2,12 +2,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
 export const CROP_OPTIONS = [
-  { id: 'tomato', name: 'Tomato', icon: '🍅', description: 'Common vegetable crop' },
-  { id: 'potato', name: 'Potato', icon: '🥔', description: 'Root vegetable' },
+  { id: 'apple', name: 'Apple', icon: '🍎', description: 'Fruit crop' },
+  { id: 'banana', name: 'Banana', icon: '🍌', description: 'Tropical fruit' },
+  { id: 'coffee', name: 'Coffee', icon: '☕', description: 'Cash crop' },
   { id: 'corn', name: 'Corn', icon: '🌽', description: 'Cereal grain' },
-  { id: 'wheat', name: 'Wheat', icon: '🌾', description: 'Cereal grain' },
+  { id: 'cotton', name: 'Cotton', icon: '🌱', description: 'Fiber crop' },
+  { id: 'eggplant', name: 'Eggplant', icon: '🍆', description: 'Vegetable crop' },
+  { id: 'grapes', name: 'Grapes', icon: '🍇', description: 'Fruit crop' },
+  { id: 'guava', name: 'Guava', icon: '🥭', description: 'Tropical fruit' },
+  { id: 'mango', name: 'Mango', icon: '🥭', description: 'Tropical fruit' },
+  { id: 'okra', name: 'Okra', icon: '🌱', description: 'Vegetable crop' },
+  { id: 'potato', name: 'Potato', icon: '🥔', description: 'Root vegetable' },
   { id: 'rice', name: 'Rice', icon: '🌾', description: 'Staple grain' },
-  { id: 'pepper', name: 'Pepper', icon: '🌶️', description: 'Spicy vegetable' }
+  { id: 'sugarcane', name: 'Sugarcane', icon: '🎋', description: 'Cash crop' },
+  { id: 'tea', name: 'Tea', icon: '🍃', description: 'Cash crop' },
+  { id: 'tomato', name: 'Tomato', icon: '🍅', description: 'Vegetable crop' },
+  { id: 'wheat', name: 'Wheat', icon: '🌾', description: 'Cereal grain' }
 ];
 
 const CropContext = createContext();

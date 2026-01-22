@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { CropProvider } from "./contexts/CropContext";
 import AlertSystem from "./components/alerts/AlertSystem";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ReminderAlert from "./components/reminders/ReminderAlert";
 import { useAlerts } from "./components/alerts/AlertProvider";
 import DataCleanupService from "./services/dataCleanupService";
 import Index from "./pages/Index";
@@ -20,6 +21,8 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import AlertDemo from "./pages/AlertDemo";
+import TreatmentPlans from "./pages/TreatmentPlans";
+import MarketRates from "./pages/MarketRates";
 
 // Initialize data cleanup on app start
 DataCleanupService.initialize();
@@ -41,8 +44,9 @@ const AppContent = () => {
           <Route path="/voice" element={<VoiceAssistant />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/treatment-plans" element={<TreatmentPlans />} />
+          <Route path="/market-rates" element={<MarketRates />} />
           <Route path="/alert-demo" element={<AlertDemo />} />
-          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
       <AlertSystem 
@@ -53,6 +57,7 @@ const AppContent = () => {
           // Handle alert actions here
         }}
       />
+      <ReminderAlert />
     </ProtectedRoute>
   );
 };

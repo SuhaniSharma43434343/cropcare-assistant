@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (phone, password) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
@@ -74,10 +74,10 @@ export const AuthProvider = ({ children }) => {
       
       // Check stored users
       const users = JSON.parse(localStorage.getItem('cropcare_users') || '[]');
-      const user = users.find(u => u.email === email && u.password === password);
+      const user = users.find(u => u.phone === phone && u.password === password);
       
       if (!user) {
-        throw new Error('Invalid email or password');
+        throw new Error('Invalid phone number or password');
       }
 
       const authToken = `token_${Date.now()}_${Math.random()}`;
@@ -108,22 +108,27 @@ export const AuthProvider = ({ children }) => {
       
       // Check if user already exists
       const users = JSON.parse(localStorage.getItem('cropcare_users') || '[]');
-      const existingUser = users.find(u => u.email === userData.email);
+      const existingUser = users.find(u => u.phone === userData.phone);
       
       if (existingUser) {
-        throw new Error('User already exists with this email');
+        throw new Error('User already exists with this phone number');
       }
 
-      // Create new user
+      // Create new user with minimal data
       const newUser = {
         id: Date.now(),
-        name: userData.name,
-        email: userData.email,
+        phone: userData.phone,
         password: userData.password,
-        selectedCrops: userData.selectedCrops || [],
-        farmDetails: userData.farmDetails || {},
+        name: '', // Empty initially, can be updated in profile
+        email: '', // Empty initially, can be updated in profile
+        selectedCrops: [],
+        farmDetails: {
+          location: '',
+          size: '',
+          phone: userData.phone
+        },
         createdAt: new Date().toISOString(),
-        profileComplete: true
+        profileComplete: false // Profile is not complete initially
       };
 
       users.push(newUser);

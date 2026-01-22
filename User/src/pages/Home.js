@@ -18,15 +18,21 @@ import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
 import AlertBell from "../components/alerts/AlertBell";
 import AlertCenter from "../components/alerts/AlertCenter";
+import WeatherMarketSection from "../components/WeatherMarketSection";
+import CitySelector from "../components/CitySelector";
 import { useAlerts } from "../components/alerts/AlertProvider";
 import { useAuth } from "../contexts/AuthContext";
+import { useCrop } from "../contexts/CropContext";
 
 const Home = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const [selectedCity, setSelectedCity] = useState('Mumbai');
+  const [currentLocation, setCurrentLocation] = useState(null);
   const { showSuccess, showInfo } = useAlerts();
   const { user } = useAuth();
+  const { getSelectedCropForDiagnosis } = useCrop();
 
   const features = [
     {
@@ -38,8 +44,8 @@ const Home = () => {
     {
       icon: Shield,
       title: "Treatment Plans",
-      description: "Personalized organic and chemical treatment recommendations",
-      path: "/treatment"
+      description: "Comprehensive treatment plans for 45+ common crop diseases",
+      path: "/treatment-plans"
     },
     {
       icon: TrendingUp,
@@ -60,6 +66,13 @@ const Home = () => {
     { number: "95%", label: "Accuracy Rate", icon: Award },
     { number: "24/7", label: "AI Support", icon: Zap }
   ];
+
+  const handleCityChange = (city, coords = null) => {
+    setSelectedCity(city);
+    if (coords) {
+      console.log('Location coordinates:', coords);
+    }
+  };
 
   const handleScanClick = () => {
     setIsLoading(true);
@@ -91,6 +104,10 @@ const Home = () => {
           </div>
           <AlertBell onClick={() => setShowAlertCenter(true)} />
         </motion.div>
+
+
+
+
 
         {/* Main Green Box - Matching Existing Design */}
         <motion.div
@@ -155,6 +172,15 @@ const Home = () => {
           </button>
         </motion.div>
 
+        {/* Weather and Market Prices Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <WeatherMarketSection />
+        </motion.div>
+
         {/* Features Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -192,7 +218,7 @@ const Home = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.35 }}
           className="bg-white p-5 rounded-2xl shadow-lg border border-gray-100"
         >
           <h3 className="text-lg font-semibold text-gray-900 mb-4">

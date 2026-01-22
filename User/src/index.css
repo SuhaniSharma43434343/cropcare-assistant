@@ -83,6 +83,10 @@
     box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.4);
   }
   
+  .shadow-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 76%, 46%) 100%);
@@ -94,6 +98,71 @@
   
   .safe-area-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .pb-safe {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+  
+  /* Responsive container utilities */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply w-full max-w-4xl mx-auto px-4 sm:px-6;
+  }
+  
+  /* Responsive grid utilities */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+  }
+  
+  .grid-auto-fit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  
+  /* Responsive flex utilities */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row gap-4;
+  }
+  
+  .flex-responsive-reverse {
+    @apply flex flex-col-reverse sm:flex-row gap-4;
+  }
+  
+  /* Button responsive utilities */
+  .btn-responsive {
+    @apply w-full sm:w-auto px-6 py-3 text-sm sm:text-base;
+  }
+  
+  /* Text responsive utilities */
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+  
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+  
+  /* Spacing responsive utilities */
+  .space-responsive {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+  
+  .p-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  /* Image preview utilities */
+  .image-preview-compact {
+    @apply w-full max-w-xs lg:max-w-sm aspect-square rounded-2xl overflow-hidden shadow-lg;
+  }
+  
+  .image-preview-responsive {
+    @apply w-full aspect-[4/3] sm:aspect-square lg:aspect-[4/3] rounded-2xl overflow-hidden;
   }
   
   /* Line clamp utilities */
@@ -116,6 +185,16 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  /* Focus states for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
   
   /* Alert system enhancements */

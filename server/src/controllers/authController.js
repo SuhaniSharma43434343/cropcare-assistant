@@ -7,20 +7,17 @@ const generateToken = (id) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, selectedCrops, primaryCrop, farmDetails } = req.body;
+    const { phone, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ phone });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'User already exists with this phone number' });
     }
 
     const user = await User.create({ 
-      name, 
-      email, 
-      password, 
-      selectedCrops: selectedCrops || [],
-      primaryCrop,
-      farmDetails: farmDetails || {}
+      phone, 
+      password,
+      profileComplete: false
     });
     const token = generateToken(user._id);
 
@@ -29,12 +26,14 @@ const register = async (req, res) => {
       token,
       user: {
         id: user._id,
+        phone: user.phone,
         name: user.name,
         email: user.email,
         role: user.role,
         selectedCrops: user.selectedCrops,
         primaryCrop: user.primaryCrop,
-        farmDetails: user.farmDetails
+        farmDetails: user.farmDetails,
+        profileComplete: user.profileComplete
       }
     });
   } catch (error) {
@@ -44,9 +43,9 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ phone });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -58,12 +57,14 @@ const login = async (req, res) => {
       token,
       user: {
         id: user._id,
+        phone: user.phone,
         name: user.name,
         email: user.email,
         role: user.role,
         selectedCrops: user.selectedCrops,
         primaryCrop: user.primaryCrop,
-        farmDetails: user.farmDetails
+        farmDetails: user.farmDetails,
+        profileComplete: user.profileComplete
       }
     });
   } catch (error) {
@@ -77,12 +78,14 @@ const getProfile = async (req, res) => {
       success: true,
       user: {
         id: req.user._id,
+        phone: req.user.phone,
         name: req.user.name,
         email: req.user.email,
         role: req.user.role,
         selectedCrops: req.user.selectedCrops,
         primaryCrop: req.user.primaryCrop,
-        farmDetails: req.user.farmDetails
+        farmDetails: req.user.farmDetails,
+        profileComplete: req.user.profileComplete
       }
     });
   } catch (error) {
@@ -90,4 +93,42 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile };
+const updateProfile = async (req, res) => {
+  try {
+    const { name, email, selectedCrops, primaryCrop, farmDetails } = req.body;
+    
+    const updateData = {
+      ...(name && { name }),
+      ...(email && { email }),
+      ...(selectedCrops && { selectedCrops }),
+      ...(primaryCrop && { primaryCrop }),
+      ...(farmDetails && { farmDetails }),
+      profileComplete: true
+    };
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        phone: user.phone,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        selectedCrops: user.selectedCrops,
+        primaryCrop: user.primaryCrop,
+        farmDetails: user.farmDetails,
+        profileComplete: user.profileComplete
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, login, getProfile, updateProfile };

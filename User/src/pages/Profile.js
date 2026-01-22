@@ -14,7 +14,8 @@ import {
   Shield,
   LogOut,
   ExternalLink,
-  Edit3
+  Edit3,
+  Sprout
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Switch } from "../components/ui/switch";
@@ -108,27 +109,40 @@ const Profile = () => {
             </div>
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-foreground">{user?.name || 'User'}</h2>
-              <p className="text-sm text-muted-foreground">{user?.location || 'Location not set'}</p>
+              <p className="text-sm text-muted-foreground">{user?.phone || 'Phone not set'}</p>
             </div>
             <Edit3 className="w-5 h-5 text-muted-foreground" />
           </div>
 
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {userCrops.length > 0 ? (
-              userCrops.map((crop) => (
-                <span
-                  key={crop.id}
-                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium flex items-center gap-1"
-                >
-                  <span>{crop.icon}</span>
-                  {crop.name}
-                </span>
-              ))
-            ) : (
-              <span className="px-3 py-1 bg-muted/30 text-muted-foreground rounded-full text-xs">
-                No crops selected
+          {/* Crops Display */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Your Crops
               </span>
-            )}
+              <span className="text-xs text-muted-foreground">
+                {userCrops.length}/6
+              </span>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {userCrops.length > 0 ? (
+                userCrops.map((crop) => (
+                  <div
+                    key={crop.id}
+                    className="flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium border border-primary/20"
+                  >
+                    <span className="text-sm">{crop.icon}</span>
+                    <span>{crop.name}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-1 bg-muted/30 text-muted-foreground rounded-full text-xs">
+                  <Sprout className="w-3 h-3" />
+                  <span>No crops selected</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">

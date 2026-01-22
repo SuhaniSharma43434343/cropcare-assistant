@@ -2,21 +2,26 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
+  phone: {
     type: String,
     required: true,
     unique: true,
-    lowercase: true
+    trim: true
   },
   password: {
     type: String,
     required: true,
     minlength: 6
+  },
+  name: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  email: {
+    type: String,
+    lowercase: true,
+    default: ''
   },
   role: {
     type: String,
@@ -25,19 +30,22 @@ const userSchema = new mongoose.Schema({
   },
   selectedCrops: [{
     type: String,
-    enum: ['wheat', 'rice', 'corn', 'soybean', 'cotton', 'sugarcane', 'potato', 'tomato', 'maize', 'barley']
+    enum: ['apple', 'banana', 'coffee', 'corn', 'cotton', 'eggplant', 'grapes', 'guava', 'mango', 'okra', 'potato', 'rice', 'sugarcane', 'tea', 'tomato', 'wheat']
   }],
   primaryCrop: {
     type: String,
-    enum: ['wheat', 'rice', 'corn', 'soybean', 'cotton', 'sugarcane', 'potato', 'tomato', 'maize', 'barley']
+    enum: ['apple', 'banana', 'coffee', 'corn', 'cotton', 'eggplant', 'grapes', 'guava', 'mango', 'okra', 'potato', 'rice', 'sugarcane', 'tea', 'tomato', 'wheat']
   },
   farmDetails: {
     location: String,
     size: {
       type: String,
       enum: ['small', 'medium', 'large']
-    },
-    phone: String
+    }
+  },
+  profileComplete: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

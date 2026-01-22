@@ -10,6 +10,8 @@ const connectDB = require('./config/database');
 // Import routes
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
+const weatherRoutes = require('./routes/weather');
+const cropRatesRoutes = require('./routes/cropRates');
 
 // Import models
 const ScanRecord = require('./models/ScanRecord');
@@ -42,6 +44,8 @@ app.use(express.urlencoded({ extended: true }));
 // ================= ROUTES =================
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/weather', weatherRoutes);
+app.use('/api/crop-rates', cropRatesRoutes);
 
 // ================= PYTHON ML CONFIG =================
 const PYTHON_ML_URL = process.env.PYTHON_ML_URL || 'http://localhost:8001';
