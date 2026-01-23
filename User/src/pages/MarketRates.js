@@ -15,14 +15,14 @@ const MarketRates = () => {
       else setLoading(true);
       
       const response = await fetch(
-        'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=579b464db66ec23bdd0000011dff195781234c2349ed51abe8c46981&format=json&limit=50'
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/mandi/prices?limit=50`
       );
       
       if (!response.ok) throw new Error('Failed to fetch');
       
-      const data = await response.json();
-      if (data.records) {
-        const processedRates = data.records.map((record, index) => ({
+      const result = await response.json();
+      if (result.success && result.data.records) {
+        const processedRates = result.data.records.map((record, index) => ({
           id: index,
           crop: record.commodity || 'Unknown',
           price: record.modal_price || record.min_price || record.max_price || 'N/A',
@@ -53,7 +53,7 @@ const MarketRates = () => {
             <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-lg font-semibold">Market Rates</h1>
+          <h1 className="text-lg font-semibold">Market Rates</h1>
           </div>
           <button
             onClick={() => fetchMarketRates(true)}

@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Camera, BarChart3, User } from "lucide-react";
+import { Home, Camera, BarChart3, User, Handshake } from "lucide-react";
 
 const navItems = [
   { 
@@ -14,6 +14,12 @@ const navItems = [
     label: "Scan", 
     path: "/capture",
     ariaLabel: "Start crop scanning"
+  },
+  { 
+    icon: Handshake, 
+    label: "Connect", 
+    path: "/farm-connect",
+    ariaLabel: "Connect farmers and investors"
   },
   { 
     icon: BarChart3, 

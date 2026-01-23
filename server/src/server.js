@@ -14,6 +14,8 @@ const weatherRoutes = require('./routes/weather');
 const cropRatesRoutes = require('./routes/cropRates');
 const investmentRoutes = require('./routes/investment');
 const investorAuthRoutes = require('./routes/investorAuth');
+const mandiRoutes = require('./routes/mandi');
+const farmerInvestorRoutes = require('./routes/farmerInvestor');
 
 // Import models
 const ScanRecord = require('./models/ScanRecord');
@@ -50,6 +52,8 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/crop-rates', cropRatesRoutes);
 app.use('/api/investment', investmentRoutes);
 app.use('/api/investor-auth', investorAuthRoutes);
+app.use('/api/mandi', mandiRoutes);
+app.use('/api/farmer-investor', farmerInvestorRoutes);
 
 // ================= PYTHON ML CONFIG =================
 const PYTHON_ML_URL = process.env.PYTHON_ML_URL || 'http://localhost:8001';

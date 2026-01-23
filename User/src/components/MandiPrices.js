@@ -67,74 +67,22 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
     try {
       setLoading(true);
       
-      // Get user location if not provided
-      let currentLocation = userLocation;
-      if (!currentLocation) {
-        try {
-          currentLocation = await getUserLocation();
-          setUserLocation(currentLocation);
-        } catch (error) {
-          console.error('Location error:', error);
-          // Continue without location filtering
-        }
-      }
-
-      // Get location details for filtering
-      let locationDetails = null;
-      if (currentLocation) {
-        locationDetails = await reverseGeocode(currentLocation.lat, currentLocation.lon);
-      }
-
+      // Use backend API instead of direct government API
       const response = await fetch(
-        'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=579b464db66ec23bdd0000011dff195781234c2349ed51abe8c46981&format=json&limit=100'
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/mandi/prices?crop=${encodeURIComponent(selectedCrop)}&limit=10`
       );
       
       if (!response.ok) {
         throw new Error('Failed to fetch market data');
       }
       
-      const data = await response.json();
+      const result = await response.json();
       
-      if (data.records && data.records.length > 0) {
-        // Filter by crop first
-        let cropFiltered = data.records.filter(record => 
-          record.commodity && record.commodity.toLowerCase().includes(
-            cropMapping[selectedCrop]?.toLowerCase() || selectedCrop.toLowerCase()
-          )
-        );
-
-        // If no specific crop found, try broader search
-        if (cropFiltered.length === 0) {
-          cropFiltered = data.records.filter(record =>
-            record.commodity && record.commodity.toLowerCase().includes(selectedCrop.toLowerCase().slice(0, 4))
-          );
-        }
-
-        // Filter by location if available
-        let locationFiltered = cropFiltered;
-        if (locationDetails && locationDetails.state) {
-          locationFiltered = cropFiltered.filter(record =>
-            record.state && record.state.toLowerCase().includes(locationDetails.state.toLowerCase())
-          );
-          
-          // If no state match, try district
-          if (locationFiltered.length === 0 && locationDetails.district) {
-            locationFiltered = cropFiltered.filter(record =>
-              record.district && record.district.toLowerCase().includes(locationDetails.district.toLowerCase())
-            );
-          }
-        }
-
-        // If location filtering resulted in no data, use crop filtered
-        const finalData = locationFiltered.length > 0 ? locationFiltered : cropFiltered;
-
-        // If still no data, use first few records
-        const displayData = finalData.length > 0 ? finalData.slice(0, 3) : data.records.slice(0, 3);
-        
+      if (result.success && result.data.records && result.data.records.length > 0) {
         setPrices({
-          records: displayData,
-          lastUpdated: new Date().toISOString(),
-          location: locationDetails
+          records: result.data.records,
+          lastUpdated: result.data.lastUpdated,
+          source: result.data.source
         });
         setError(null);
       } else {
@@ -200,7 +148,7 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">Market Prices</h3>
             <p className="text-xs text-gray-600">
-              {prices?.location ? `${prices.location.city || prices.location.district}, ${prices.location.state}` : 'Mandi Rates'}
+              {prices?.source === 'government_api' ? 'Live Mandi Rates' : 'Sample Market Data'}
             </p>
           </div>
         </div>
