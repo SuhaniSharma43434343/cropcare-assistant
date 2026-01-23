@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Camera, BarChart3, User, TrendingUp } from "lucide-react";
+import { Home, Camera, BarChart3, User } from "lucide-react";
 
 const navItems = [
   { 
@@ -20,12 +20,6 @@ const navItems = [
     label: "Dashboard", 
     path: "/dashboard",
     ariaLabel: "View dashboard and analytics"
-  },
-  { 
-    icon: TrendingUp, 
-    label: "Investment", 
-    path: "/investment",
-    ariaLabel: "View investment opportunities"
   },
   { 
     icon: User, 

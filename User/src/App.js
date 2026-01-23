@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AlertProvider } from "./components/alerts/AlertProvider";
 import { AuthProvider } from "./contexts/AuthContext";
+import { InvestorAuthProvider } from "./contexts/InvestorAuthContext";
 import { CropProvider } from "./contexts/CropContext";
 import { DiseaseProvider } from "./contexts/DiseaseContext";
 import AlertSystem from "./components/alerts/AlertSystem";
@@ -25,6 +26,8 @@ import AlertDemo from "./pages/AlertDemo";
 import TreatmentPlans from "./pages/TreatmentPlans";
 import MarketRates from "./pages/MarketRates";
 import Investment from "./pages/Investment";
+import InvestorLogin from "./pages/InvestorLogin";
+import InvestorDashboard from "./pages/InvestorDashboard";
 
 // Initialize data cleanup on app start
 DataCleanupService.initialize();
@@ -50,6 +53,8 @@ const AppContent = () => {
           <Route path="/market-rates" element={<MarketRates />} />
           <Route path="/alert-demo" element={<AlertDemo />} />
           <Route path="/investment" element={<Investment />} />
+          <Route path="/investor-login" element={<InvestorLogin />} />
+          <Route path="/investor-dashboard" element={<InvestorDashboard />} />
         </Routes>
       </BrowserRouter>
       <AlertSystem 
@@ -69,15 +74,17 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <CropProvider>
-          <DiseaseProvider>
-            <AlertProvider>
-              <Toaster />
-              <Sonner />
-              <AppContent />
-            </AlertProvider>
-          </DiseaseProvider>
-        </CropProvider>
+        <InvestorAuthProvider>
+          <CropProvider>
+            <DiseaseProvider>
+              <AlertProvider>
+                <Toaster />
+                <Sonner />
+                <AppContent />
+              </AlertProvider>
+            </DiseaseProvider>
+          </CropProvider>
+        </InvestorAuthProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

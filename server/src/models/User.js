@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  contactMobile: {
+    type: String,
+    trim: true,
+    default: function() { return this.phone; }
+  },
   password: {
     type: String,
     required: true,

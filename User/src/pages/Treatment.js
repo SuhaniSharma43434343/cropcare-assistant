@@ -16,7 +16,8 @@ import {
   Bell,
   Loader2,
   Calendar,
-  List
+  List,
+  Calculator
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
@@ -27,6 +28,7 @@ import ReminderModal from "../components/reminders/ReminderModal";
 import ReminderList from "../components/reminders/ReminderList";
 import ReminderAlert from "../components/reminders/ReminderAlert";
 import WeatherRecommendation from "../components/WeatherRecommendation";
+import DosageCalculator from "../components/treatment/DosageCalculator";
 import reminderService from "../services/reminderService";
 import { ALERT_TYPES, PRIORITY_LEVELS } from "../components/alerts/AlertSystem";
 
@@ -39,6 +41,7 @@ const Treatment = () => {
   const [selectedTreatment, setSelectedTreatment] = useState(null);
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [openCalculators, setOpenCalculators] = useState({});
   const { 
     showTreatmentDue, 
     showWeatherWarning, 
@@ -83,6 +86,14 @@ const Treatment = () => {
   const handleSetReminder = (treatment) => {
     setSelectedTreatment(treatment);
     setShowReminderModal(true);
+  };
+
+  // Toggle dosage calculator for specific treatment
+  const toggleCalculator = (treatmentIndex) => {
+    setOpenCalculators(prev => ({
+      ...prev,
+      [treatmentIndex]: !prev[treatmentIndex]
+    }));
   };
 
   // Get current treatments from ML service data only
@@ -306,6 +317,30 @@ const Treatment = () => {
                             Set Reminder
                           </Button>
                         </div>
+
+                        {/* Dosage Calculator Button (Chemical treatments only) */}
+                        {activeTab === "chemical" && (
+                          <div className="mt-3">
+                            <Button
+                              onClick={() => toggleCalculator(index)}
+                              variant="outline"
+                              size="sm"
+                              className="w-full border-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 font-semibold py-3 rounded-xl transition-all duration-200"
+                            >
+                              <Calculator className="w-4 h-4 mr-2" />
+                              {openCalculators[index] ? 'Hide Calculator' : 'Calculate Dosage'}
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Dosage Calculator */}
+                        {activeTab === "chemical" && (
+                          <DosageCalculator
+                            treatment={treatment}
+                            isOpen={openCalculators[index]}
+                            onClose={() => toggleCalculator(index)}
+                          />
+                        )}
 
                         {/* Warning for chemical */}
                         {treatment.warning && (
