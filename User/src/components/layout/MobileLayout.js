@@ -39,7 +39,7 @@ const MobileLayout = ({ children, showNav = true, className = "" }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
       {/* Offline Banner */}
       {!isOnline && (
         <motion.div

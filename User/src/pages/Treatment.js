@@ -96,10 +96,10 @@ const Treatment = () => {
   if (loading) {
     return (
       <MobileLayout showNav={false}>
-        <div className="min-h-screen bg-background safe-area-top flex items-center justify-center">
+        <div className="min-h-screen bg-white safe-area-top flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading AI treatment recommendations...</p>
+            <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading AI treatment recommendations...</p>
           </div>
         </div>
       </MobileLayout>
@@ -109,12 +109,14 @@ const Treatment = () => {
   if (!diagnosisData) {
     return (
       <MobileLayout showNav={false}>
-        <div className="min-h-screen bg-background safe-area-top flex items-center justify-center">
-          <div className="text-center">
-            <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <p className="text-foreground font-medium mb-2">No AI Diagnosis Found</p>
-            <p className="text-muted-foreground mb-4">Please scan an image first to get AI-powered treatment recommendations.</p>
-            <Button onClick={() => navigate('/capture')}>Scan Image</Button>
+        <div className="min-h-screen bg-white safe-area-top flex items-center justify-center px-6">
+          <div className="text-center max-w-md">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+            <p className="text-gray-900 font-semibold text-xl mb-3">No AI Diagnosis Found</p>
+            <p className="text-gray-600 mb-6 leading-relaxed">Please scan an image first to get AI-powered treatment recommendations.</p>
+            <Button onClick={() => navigate('/capture')} className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-medium">
+              Scan Image
+            </Button>
           </div>
         </div>
       </MobileLayout>
@@ -130,77 +132,93 @@ const Treatment = () => {
 
   return (
     <MobileLayout showNav={false}>
-      <div className="min-h-screen bg-background safe-area-top">
+      <div className="min-h-screen bg-white safe-area-top">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </Button>
-          
-          <h1 className="text-lg font-display font-semibold">Treatment Plan</h1>
-          
-          <div className="flex items-center gap-2">
+        <div className="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
             <Button
               variant="ghost"
-              size="icon-sm"
-              onClick={() => setShowReminderList(true)}
-              className="relative"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="hover:bg-gray-100 rounded-xl"
             >
-              <List className="w-5 h-5" />
+              <ChevronLeft className="w-6 h-6 text-gray-700" />
             </Button>
-            <AlertBell onClick={() => setShowAlertCenter(true)} />
+            
+            <h1 className="text-xl font-bold text-gray-900">Treatment Plan</h1>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setShowReminderList(true)}
+                className="hover:bg-gray-100 rounded-xl"
+              >
+                <List className="w-5 h-5 text-gray-700" />
+              </Button>
+              <AlertBell onClick={() => setShowAlertCenter(true)} />
+            </div>
           </div>
         </div>
 
-        <div className="px-4 py-4 max-w-6xl mx-auto">
+        <div className="px-4 py-6 max-w-6xl mx-auto space-y-6">
           {/* Disease Reference */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 glass-card rounded-2xl mb-6"
+            className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 rounded-2xl p-6 shadow-sm"
           >
-            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-              <Leaf className="w-6 h-6 text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="font-semibold text-foreground text-lg">{diagnosisData.name || 'Disease Detected'}</h2>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="text-sm text-muted-foreground">
-                  Confidence: {Math.round((diagnosisData.confidence || 0) * 100)}%
-                </span>
-                <span className="text-muted-foreground">•</span>
-                <span className="text-sm text-muted-foreground">
-                  Severity: {diagnosisData.severity || 'Unknown'}
-                </span>
-                {diagnosisData.analyzed_crop && (
-                  <>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-sm text-muted-foreground">
-                      Crop: {diagnosisData.analyzed_crop}
-                    </span>
-                  </>
-                )}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                <Leaf className="w-7 h-7 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold text-gray-900 text-xl mb-2">{diagnosisData.name || 'Disease Detected'}</h2>
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-600">Confidence:</span>
+                    <span className="font-semibold text-green-600">{Math.round((diagnosisData.confidence || 0) * 100)}%</span>
+                  </div>
+                  <span className="text-gray-400">•</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-600">Severity:</span>
+                    <span className="font-semibold text-orange-600">{diagnosisData.severity || 'Unknown'}</span>
+                  </div>
+                  {diagnosisData.analyzed_crop && (
+                    <>
+                      <span className="text-gray-400">•</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-600">Crop:</span>
+                        <span className="font-semibold text-blue-600">{diagnosisData.analyzed_crop}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
 
           {/* Treatment Type Tabs */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-3 p-1 bg-gray-100 rounded-2xl">
             <Button
-              variant={activeTab === "organic" ? "gradient" : "secondary"}
-              className="flex-1 sm:flex-none sm:px-8"
+              variant={activeTab === "organic" ? "default" : "ghost"}
+              className={`flex-1 sm:flex-none sm:px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                activeTab === "organic" 
+                  ? "bg-green-600 hover:bg-green-700 text-white shadow-lg" 
+                  : "text-gray-600 hover:text-gray-900 hover:bg-white"
+              }`}
               onClick={() => setActiveTab("organic")}
             >
               <Leaf className="w-4 h-4 mr-2" />
               Organic
             </Button>
             <Button
-              variant={activeTab === "chemical" ? "gradient" : "secondary"}
-              className="flex-1 sm:flex-none sm:px-8"
+              variant={activeTab === "chemical" ? "default" : "ghost"}
+              className={`flex-1 sm:flex-none sm:px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                activeTab === "chemical" 
+                  ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg" 
+                  : "text-gray-600 hover:text-gray-900 hover:bg-white"
+              }`}
               onClick={() => setActiveTab("chemical")}
             >
               <FlaskConical className="w-4 h-4 mr-2" />
@@ -218,7 +236,7 @@ const Treatment = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6"
+              className="grid grid-cols-1 xl:grid-cols-2 gap-4"
             >
               {treatments.map((treatment, index) => {
                 const IconComponent = treatment.icon || Leaf;
@@ -228,61 +246,61 @@ const Treatment = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="glass-card rounded-2xl p-4 shadow-card h-full"
+                    className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300"
                   >
                     <div className="flex items-start gap-4 h-full">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        activeTab === "organic" ? "bg-success/10" : "bg-warning/10"
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                        activeTab === "organic" ? "bg-green-100" : "bg-blue-100"
                       }`}>
-                        <IconComponent className={`w-6 h-6 ${
-                          activeTab === "organic" ? "text-success" : "text-warning"
+                        <IconComponent className={`w-7 h-7 ${
+                          activeTab === "organic" ? "text-green-600" : "text-blue-600"
                         }`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground mb-3 text-lg">{treatment.name}</h3>
+                        <h3 className="font-bold text-gray-900 mb-4 text-lg leading-tight">{treatment.name}</h3>
                         
                         <div className="space-y-3 text-sm">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Droplets className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">Dosage: {treatment.dosage}</span>
+                          <div className="flex items-center gap-3 text-gray-600">
+                            <Droplets className="w-4 h-4 flex-shrink-0 text-blue-500" />
+                            <span className="font-medium">Dosage: <span className="text-gray-900">{treatment.dosage}</span></span>
                           </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">Apply {treatment.frequency}</span>
+                          <div className="flex items-center gap-3 text-gray-600">
+                            <Clock className="w-4 h-4 flex-shrink-0 text-orange-500" />
+                            <span className="font-medium">Apply <span className="text-gray-900">{treatment.frequency}</span></span>
                           </div>
                           {treatment.instructions && (
-                            <div className="flex items-start gap-2 text-muted-foreground">
-                              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs leading-relaxed">{treatment.instructions}</span>
+                            <div className="flex items-start gap-3 text-gray-600">
+                              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-green-500" />
+                              <span className="text-sm leading-relaxed">{treatment.instructions}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Effectiveness Bar */}
-                        <div className="mt-4">
-                          <div className="flex justify-between text-xs mb-2">
-                            <span className="text-muted-foreground">Effectiveness</span>
-                            <span className="text-foreground font-medium">{treatment.effectiveness}%</span>
+                        <div className="mt-6">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-gray-600 font-medium">Effectiveness</span>
+                            <span className="text-gray-900 font-bold">{treatment.effectiveness}%</span>
                           </div>
-                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${treatment.effectiveness}%` }}
                               transition={{ delay: 0.3, duration: 0.5 }}
                               className={`h-full rounded-full ${
-                                activeTab === "organic" ? "bg-success" : "bg-warning"
+                                activeTab === "organic" ? "bg-green-500" : "bg-blue-500"
                               }`}
                             />
                           </div>
                         </div>
 
                         {/* Set Reminder Button */}
-                        <div className="mt-4">
+                        <div className="mt-6">
                           <Button
                             onClick={() => handleSetReminder(treatment)}
                             variant="outline"
                             size="sm"
-                            className="w-full text-primary border-primary hover:bg-primary/10"
+                            className="w-full border-2 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 font-semibold py-3 rounded-xl transition-all duration-200"
                           >
                             <Calendar className="w-4 h-4 mr-2" />
                             Set Reminder
@@ -291,9 +309,9 @@ const Treatment = () => {
 
                         {/* Warning for chemical */}
                         {treatment.warning && (
-                          <div className="mt-3 flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
-                            <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
-                            <span className="text-xs text-destructive leading-relaxed">{treatment.warning}</span>
+                          <div className="mt-4 flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm text-red-700 leading-relaxed font-medium">{treatment.warning}</span>
                           </div>
                         )}
                       </div>
@@ -309,42 +327,35 @@ const Treatment = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-warning/5 border border-warning/20 rounded-2xl p-4 mb-6"
+            className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-6"
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-5 h-5 text-warning" />
-              <h3 className="font-semibold text-foreground">Safety Guidelines</h3>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-amber-600" />
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg">Safety Guidelines</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {safetyTips.map((tip, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-muted-foreground">{tip}</span>
+                <div key={index} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium leading-relaxed">{tip}</span>
                 </div>
               ))}
             </div>
           </motion.div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-safe">
+          <div className="pb-safe pt-4">
             <Button 
-              className="w-full" 
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
               size="lg"
               onClick={() => setShowReminderList(true)}
             >
-              <Bell className="w-4 h-4 mr-2" />
+              <Bell className="w-5 h-5 mr-3" />
               View Active Reminders
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              size="lg"
-              onClick={() => {
-                showInfo('Set reminders for individual treatments using the "Set Reminder" button on each treatment card.');
-              }}
-            >
-              <List className="w-4 h-4 mr-2" />
-              How to Set Reminders
             </Button>
           </div>
         </div>

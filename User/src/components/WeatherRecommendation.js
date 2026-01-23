@@ -199,15 +199,15 @@ const WeatherRecommendation = () => {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-info/10 border border-info/30 rounded-2xl p-4 mb-6"
+        className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6"
       >
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-info/20 flex items-center justify-center flex-shrink-0">
-            <div className="w-5 h-5 bg-info/30 rounded-full animate-pulse"></div>
+          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-5 h-5 bg-blue-300 rounded-full animate-pulse"></div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="h-4 bg-info/20 rounded animate-pulse mb-2"></div>
-            <div className="h-3 bg-info/20 rounded animate-pulse w-3/4"></div>
+            <div className="h-4 bg-blue-200 rounded animate-pulse mb-2"></div>
+            <div className="h-3 bg-blue-200 rounded animate-pulse w-3/4"></div>
           </div>
         </div>
       </motion.div>
@@ -219,22 +219,22 @@ const WeatherRecommendation = () => {
   const getPriorityStyles = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-destructive/10 border-destructive/30';
+        return 'bg-red-50 border-red-200';
       case 'warning':
-        return 'bg-warning/10 border-warning/30';
+        return 'bg-amber-50 border-amber-200';
       default:
-        return 'bg-info/10 border-info/30';
+        return 'bg-blue-50 border-blue-200';
     }
   };
 
   const getPriorityIconColor = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'text-destructive';
+        return 'text-red-600';
       case 'warning':
-        return 'text-warning';
+        return 'text-amber-600';
       default:
-        return 'text-info';
+        return 'text-blue-600';
     }
   };
 
@@ -248,20 +248,20 @@ const WeatherRecommendation = () => {
     >
       <div className="flex items-start gap-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          recommendation.priority === 'urgent' ? 'bg-destructive/20' :
-          recommendation.priority === 'warning' ? 'bg-warning/20' : 'bg-info/20'
+          recommendation.priority === 'urgent' ? 'bg-red-100' :
+          recommendation.priority === 'warning' ? 'bg-amber-100' : 'bg-blue-100'
         }`}>
           <IconComponent className={`w-5 h-5 ${getPriorityIconColor(recommendation.priority)}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
             {recommendation.title}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-gray-600 mt-1">
             {recommendation.description}
           </p>
           {recommendation.weatherSummary && (
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-600">
               <span className="flex items-center gap-1">
                 <Thermometer className="w-3 h-3" />
                 {Math.round(recommendation.weatherSummary.avgTemp)}°C

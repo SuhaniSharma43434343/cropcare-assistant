@@ -2,19 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  ChevronLeft, 
+  ChevronLeft,
   Globe, 
-  Camera, 
-  Upload, 
-  RotateCcw, 
-  X, 
   Check,
-  Zap,
   Info,
   Settings,
   Sprout
 } from "lucide-react";
-import { Button, LoadingButton, IconButton } from "../components/ui/button";
+import { Button, IconButton } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
 import CameraView from "../components/camera/CameraView";
 import CameraControls from "../components/camera/CameraControls";
@@ -22,7 +17,7 @@ import { useCamera } from "../hooks/useCamera";
 import AlertBell from "../components/alerts/AlertBell";
 import AlertCenter from "../components/alerts/AlertCenter";
 import { useAlerts } from "../components/alerts/AlertProvider";
-import { useCrop, CROP_OPTIONS } from "../contexts/CropContext";
+import { useCrop } from "../contexts/CropContext";
 import CropSelectionPopup from "../components/auth/CropSelectionPopup";
 import CropSelectionBanner from "../components/CropSelectionBanner";
 
@@ -47,6 +42,7 @@ const ImageCapture = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [flashMode, setFlashMode] = useState(false);
   const [gridLines, setGridLines] = useState(true);
+  const [isUploadedImage, setIsUploadedImage] = useState(false);
   const fileInputRef = useRef(null);
   const { showSuccess, showError, showInfo } = useAlerts();
 
@@ -85,25 +81,6 @@ const ImageCapture = () => {
     };
   }, [startCamera, stopCamera, capturedImage]);
 
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.code === 'Space' && isStreaming && !capturedImage) {
-        e.preventDefault();
-        handleCapture();
-      } else if (e.code === 'Escape') {
-        if (capturedImage) {
-          handleRetake();
-        } else {
-          navigate(-1);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isStreaming, capturedImage]);
-
   const handleCapture = async () => {
     if (!isStreaming) return;
     
@@ -128,6 +105,7 @@ const ImageCapture = () => {
       const image = captureImage();
       if (image) {
         setCapturedImage(image);
+        setIsUploadedImage(false);
         showSuccess('Image captured successfully!');
       } else {
         showError('Failed to capture image. Please try again.');
@@ -138,6 +116,7 @@ const ImageCapture = () => {
 
   const handleRetake = () => {
     setCapturedImage(null);
+    setIsUploadedImage(false);
     // Add a small delay before restarting camera to avoid conflicts
     setTimeout(() => {
       startCamera();
@@ -197,6 +176,7 @@ const ImageCapture = () => {
       reader.onload = (event) => {
         const result = event.target?.result;
         setCapturedImage(result);
+        setIsUploadedImage(true);
         showSuccess('Image uploaded successfully!');
       };
       reader.onerror = () => {
@@ -211,6 +191,25 @@ const ImageCapture = () => {
       fileInputRef.current.value = '';
     }
   };
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.code === 'Space' && isStreaming && !capturedImage) {
+        e.preventDefault();
+        handleCapture();
+      } else if (e.code === 'Escape') {
+        if (capturedImage) {
+          handleRetake();
+        } else {
+          navigate(-1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isStreaming, capturedImage, handleCapture, handleRetake, navigate]);
 
   const selectedLang = languages.find(lang => lang.code === selectedLanguage);
 
@@ -467,6 +466,7 @@ const ImageCapture = () => {
             error={error}
             capturedImage={capturedImage}
             showGrid={gridLines}
+            isUploadedImage={isUploadedImage}
           />
           
           {/* Processing Overlay */}

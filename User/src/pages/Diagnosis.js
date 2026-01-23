@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, AlertTriangle, Share2, Bookmark, ChevronRight, Leaf } from "lucide-react";
+import { ChevronLeft, AlertTriangle, Share2, Bookmark, ChevronRight, Leaf, CheckCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import MobileLayout from "../components/layout/MobileLayout";
 import { useEffect, useState } from "react";
@@ -144,10 +144,16 @@ const Diagnosis = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
                     <h2 className="text-2xl lg:text-3xl font-display font-bold text-foreground mb-2">
-                      {diagnosis.name || 'Disease Detected'}
+                      {diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                        ? diagnosis.name 
+                        : diagnosis.name || 'Disease Detected'}
                     </h2>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Plant Disease</span>
+                      <span className="text-sm text-muted-foreground">
+                        {diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                          ? 'Plant Health Status' 
+                          : 'Plant Disease'}
+                      </span>
                       {diagnosis.model_version && (
                         <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                           AI Model {diagnosis.model_version}
@@ -156,47 +162,90 @@ const Diagnosis = () => {
                     </div>
                   </div>
                   <span
-                    className={`px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap ${getSeverityColor(
-                      diagnosis.severity
-                    )}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap ${
+                      diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant'
+                        ? 'bg-success/10 text-success border-success/30'
+                        : getSeverityColor(diagnosis.severity)
+                    }`}
                   >
-                    {diagnosis.severity || 'Unknown'} Severity
+                    {diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant'
+                      ? 'Healthy'
+                      : `${diagnosis.severity || 'Unknown'} Severity`}
                   </span>
                 </div>
 
-                {/* Warning Banner */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-warning/10 border border-warning/30 rounded-xl p-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Immediate Action Required
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        This disease spreads rapidly. Start treatment within 24-48 hours for best results.
-                      </p>
+                {/* Warning Banner - Only show for diseases */}
+                {diagnosis.name !== 'No Disease Detected' && diagnosis.name !== 'Healthy Plant' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-warning/10 border border-warning/30 rounded-xl p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          Immediate Action Required
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This disease spreads rapidly. Start treatment within 24-48 hours for best results.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                )}
+
+                {/* Healthy Plant Banner */}
+                {(diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant') && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-success/10 border border-success/30 rounded-xl p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          Plant Appears Healthy
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No disease symptoms detected. Continue regular care and monitoring.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Description */}
                 <div>
-                  <h3 className="text-base font-semibold text-foreground mb-3">About this Disease</h3>
+                  <h3 className="text-base font-semibold text-foreground mb-3">
+                    {diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                      ? 'Plant Health Assessment' 
+                      : 'About this Disease'}
+                  </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {diagnosis.description}
+                    {diagnosis.description || 
+                      (diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                        ? 'Your plant appears to be in good health with no visible disease symptoms detected by our AI analysis.'
+                        : 'Disease information not available. Please consult with an agricultural expert for proper identification.')}
                   </p>
                 </div>
 
                 {/* Symptoms */}
                 <div>
-                  <h3 className="text-base font-semibold text-foreground mb-3">Identified Symptoms</h3>
+                  <h3 className="text-base font-semibold text-foreground mb-3">
+                    {diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                      ? 'Healthy Indicators' 
+                      : 'Identified Symptoms'}
+                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {(diagnosis.symptoms || ['Disease symptoms detected']).map((symptom, index) => (
+                    {(diagnosis.symptoms || 
+                      (diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                        ? ['No disease symptoms detected', 'Plant appears healthy', 'Normal growth patterns']
+                        : ['Disease symptoms detected'])
+                    ).map((symptom, index) => (
                       <motion.div
                         key={symptom}
                         initial={{ opacity: 0, x: -10 }}
@@ -204,7 +253,11 @@ const Diagnosis = () => {
                         transition={{ delay: 0.4 + index * 0.1 }}
                         className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg"
                       >
-                        <div className="w-2 h-2 rounded-full bg-destructive flex-shrink-0" />
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          diagnosis.name === 'No Disease Detected' || diagnosis.name === 'Healthy Plant' 
+                            ? 'bg-success' 
+                            : 'bg-destructive'
+                        }`} />
                         <span className="text-sm text-foreground">{symptom}</span>
                       </motion.div>
                     ))}
@@ -218,23 +271,47 @@ const Diagnosis = () => {
           {/* Action Buttons */}
           <div className="px-4 pb-8">
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="gradient"
-                size="xl"
-                className="flex-1"
-                onClick={() => navigate("/treatment")}
-              >
-                View Treatment Options
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="sm:w-auto px-6"
-                onClick={() => navigate("/voice")}
-              >
-                Ask AI Assistant
-              </Button>
+              {diagnosis.name !== 'No Disease Detected' && diagnosis.name !== 'Healthy Plant' ? (
+                <>
+                  <Button
+                    variant="gradient"
+                    size="xl"
+                    className="flex-1"
+                    onClick={() => navigate("/treatment")}
+                  >
+                    View Treatment Options
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="sm:w-auto px-6"
+                    onClick={() => navigate("/voice")}
+                  >
+                    Ask AI Assistant
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="gradient"
+                    size="xl"
+                    className="flex-1"
+                    onClick={() => navigate("/")}
+                  >
+                    Back to Home
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="sm:w-auto px-6"
+                    onClick={() => navigate("/capture")}
+                  >
+                    Scan Another Plant
+                  </Button>
+                </>
+              )}
             </div>
           </div>
       </div>

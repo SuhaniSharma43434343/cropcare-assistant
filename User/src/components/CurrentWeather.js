@@ -25,18 +25,26 @@ const CurrentWeather = () => {
   const fetchWeatherByCoords = async (lat, lon) => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/weather/forecast/coords/${lat}/${lon}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
-      if (data.success) {
+      if (data.success && data.data) {
         setWeather(data.data);
-        setError(null);
+        setLocationError(false);
       } else {
-        setError('Weather data unavailable');
+        throw new Error(data.message || 'Weather data unavailable');
       }
     } catch (err) {
-      setError('Failed to fetch weather');
       console.error('Weather fetch error:', err);
+      setError('Failed to fetch weather');
+      // Fallback to city-based weather
+      fetchWeatherByCity('Mumbai');
     } finally {
       setLoading(false);
     }
@@ -45,18 +53,23 @@ const CurrentWeather = () => {
   const fetchWeatherByCity = async (city) => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/weather/forecast/${city}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
-      if (data.success) {
+      if (data.success && data.data) {
         setWeather(data.data);
-        setError(null);
       } else {
-        setError('Weather data unavailable');
+        throw new Error(data.message || 'Weather data unavailable');
       }
     } catch (err) {
-      setError('Failed to fetch weather');
       console.error('Weather fetch error:', err);
+      setError('Weather service unavailable');
     } finally {
       setLoading(false);
     }

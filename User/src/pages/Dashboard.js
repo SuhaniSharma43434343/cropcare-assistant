@@ -16,67 +16,60 @@ import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, YAxis } from "recha
 import AlertBell from "../components/alerts/AlertBell";
 import AlertCenter from "../components/alerts/AlertCenter";
 import { useAlerts } from "../components/alerts/AlertProvider";
+import { useDisease } from "../contexts/DiseaseContext";
 import apiService from "../services/apiService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showAlertCenter, setShowAlertCenter] = useState(false);
-  const [diseaseData, setDiseaseData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { showTreatmentDue, showSuccess } = useAlerts();
+  const { recentDetections, getDetectionsByDisease, hasDetections, latestDetection } = useDisease();
 
+  // Get disease breakdown data from context
+  const diseaseData = getDetectionsByDisease();
+  const totalDetections = recentDetections.length;
+
+  // Listen for new disease detections
   useEffect(() => {
-    const fetchDiseaseBreakdown = async () => {
-      try {
-        const data = await apiService.getDiseaseBreakdown();
-        // Transform data to match chart format: { name, count }
-        const transformedData = data.map(item => ({
-          name: item.disease,
-          count: item.count
-        }));
-        setDiseaseData(transformedData);
-      } catch (error) {
-        console.error('Failed to fetch disease breakdown:', error);
-        // Fallback to empty array
-        setDiseaseData([]);
-      } finally {
-        setLoading(false);
-      }
+    const handleNewDetection = (event) => {
+      const detection = event.detail;
+      showSuccess(`New ${detection.severity.toLowerCase()} severity ${detection.name} detected in ${detection.crop}!`);
     };
 
-    fetchDiseaseBreakdown();
-  }, []);
+    window.addEventListener('diseaseDetected', handleNewDetection);
+    return () => window.removeEventListener('diseaseDetected', handleNewDetection);
+  }, [showSuccess]);
 
-  const recentDiagnoses = [
+  // Generate recent diagnoses from context data
+  const recentDiagnoses = recentDetections.slice(0, 3).map((detection, index) => ({
+    id: detection.id,
+    crop: detection.crop,
+    disease: detection.name,
+    severity: detection.severity,
+    date: new Date(detection.date).toLocaleDateString() === new Date().toLocaleDateString() 
+      ? 'Today' 
+      : new Date(detection.date).toLocaleDateString() === new Date(Date.now() - 86400000).toLocaleDateString()
+      ? 'Yesterday'
+      : new Date(detection.date).toLocaleDateString(),
+    status: detection.status === 'detected' ? 'treating' : 'healthy',
+  }));
+
+  // Generate reminders from latest detection treatment
+  const reminders = latestDetection?.treatment ? [
     {
       id: 1,
-      crop: "Tomato",
-      disease: "Late Blight",
-      severity: "Moderate",
-      date: "Today",
-      status: "treating",
+      text: `Apply ${latestDetection.treatment.organic?.[0]?.name || 'Treatment'} to ${latestDetection.crop.toLowerCase()} plants`,
+      time: "Today, 6:00 PM",
+      treatment: latestDetection.treatment.organic?.[0]
     },
     {
       id: 2,
-      crop: "Potato",
-      disease: "Leaf Spot",
-      severity: "Mild",
-      date: "Yesterday",
-      status: "healthy",
-    },
-    {
-      id: 3,
-      crop: "Cucumber",
-      disease: "Powdery Mildew",
-      severity: "Severe",
-      date: "3 days ago",
-      status: "treating",
-    },
-  ];
-
-  const reminders = [
-    { id: 1, text: "Apply Neem Oil spray to tomatoes", time: "Today, 6:00 PM" },
-    { id: 2, text: "Water cucumber plants", time: "Tomorrow, 7:00 AM" },
+      text: `Monitor ${latestDetection.crop.toLowerCase()} for ${latestDetection.name.toLowerCase()} symptoms`,
+      time: "Tomorrow, 7:00 AM"
+    }
+  ] : [
+    { id: 1, text: "No active treatments", time: "Scan crops to get started" }
   ];
 
   return (
@@ -95,6 +88,56 @@ const Dashboard = () => {
           <AlertBell onClick={() => setShowAlertCenter(true)} />
         </motion.div>
 
+        {/* Latest Detection Alert */}
+        {latestDetection && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
+                    Latest Detection: {latestDetection.name}
+                  </h3>
+                  <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
+                    Found in {latestDetection.crop} • {latestDetection.severity} severity
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        // Set the latest detection as current diagnosis
+                        sessionStorage.setItem('diagnosisResult', JSON.stringify({
+                          ...latestDetection,
+                          analyzedCrop: { name: latestDetection.crop }
+                        }));
+                        navigate('/diagnosis');
+                      }}
+                      className="text-xs border-orange-300 text-orange-700 hover:bg-orange-100"
+                    >
+                      View Details
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => navigate('/treatment')}
+                      className="text-xs bg-orange-600 hover:bg-orange-700 text-white"
+                    >
+                      Get Treatment
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Stats Cards */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -108,7 +151,7 @@ const Dashboard = () => {
               <AlertTriangle className="w-4 h-4 text-warning" />
             </div>
             <p className="text-2xl font-bold text-foreground">
-              {loading ? '...' : diseaseData.reduce((sum, d) => sum + d.count, 0)}
+              {totalDetections}
             </p>
             <p className="text-xs text-muted-foreground">This month</p>
           </div>
@@ -128,9 +171,13 @@ const Dashboard = () => {
             <span className="text-xs text-muted-foreground">This month</span>
           </div>
           <div className="h-32">
-            {loading ? (
+            {!hasDetections ? (
               <div className="flex items-center justify-center h-full">
-                <div className="text-sm text-muted-foreground">Loading...</div>
+                <div className="text-center">
+                  <Leaf className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <div className="text-sm text-muted-foreground">No disease detections yet</div>
+                  <div className="text-xs text-muted-foreground mt-1">Scan your crops to get started</div>
+                </div>
               </div>
             ) : diseaseData.length === 0 ? (
               <div className="flex items-center justify-center h-full">
@@ -182,43 +229,57 @@ const Dashboard = () => {
             </Button>
           </div>
           <div className="space-y-3">
-            {recentDiagnoses.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
-                className="flex items-center gap-4 p-4 glass-card rounded-2xl shadow-soft"
-                onClick={() => navigate("/diagnosis")}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  item.status === "healthy" ? "bg-success/10" : "bg-warning/10"
-                }`}>
-                  {item.status === "healthy" ? (
-                    <CheckCircle className="w-5 h-5 text-success" />
-                  ) : (
-                    <Clock className="w-5 h-5 text-warning" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">{item.crop}</span>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-sm text-muted-foreground">{item.disease}</span>
+            {recentDiagnoses.length === 0 ? (
+              <div className="text-center py-8">
+                <Leaf className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-2">No recent diagnoses</p>
+                <Button 
+                  size="sm" 
+                  onClick={() => navigate("/capture")}
+                  className="text-xs"
+                >
+                  Start Scanning
+                </Button>
+              </div>
+            ) : (
+              recentDiagnoses.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  className="flex items-center gap-4 p-4 glass-card rounded-2xl shadow-soft cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate("/diagnosis")}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    item.status === "healthy" ? "bg-success/10" : "bg-warning/10"
+                  }`}>
+                    {item.status === "healthy" ? (
+                      <CheckCircle className="w-5 h-5 text-success" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-warning" />
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground">{item.date}</p>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  item.severity === "Mild" 
-                    ? "bg-success/10 text-success"
-                    : item.severity === "Moderate"
-                    ? "bg-warning/10 text-warning"
-                    : "bg-destructive/10 text-destructive"
-                }`}>
-                  {item.severity}
-                </span>
-              </motion.div>
-            ))}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{item.crop}</span>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-sm text-muted-foreground">{item.disease}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{item.date}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    item.severity === "Mild" || item.severity === "Low"
+                      ? "bg-success/10 text-success"
+                      : item.severity === "Moderate" || item.severity === "Medium"
+                      ? "bg-warning/10 text-warning"
+                      : "bg-destructive/10 text-destructive"
+                  }`}>
+                    {item.severity}
+                  </span>
+                </motion.div>
+              ))
+            )}
           </div>
         </motion.div>
 
@@ -239,8 +300,16 @@ const Dashboard = () => {
             {reminders.map((reminder) => (
               <div
                 key={reminder.id}
-                className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl cursor-pointer"
-                onClick={() => showTreatmentDue('Neem Oil Spray', 'Tomato Plants', '2 hours')}
+                className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl cursor-pointer hover:bg-primary/10 transition-colors"
+                onClick={() => {
+                  if (reminder.treatment) {
+                    showTreatmentDue(
+                      reminder.treatment.name || 'Treatment',
+                      latestDetection?.crop || 'Plants',
+                      '2 hours'
+                    );
+                  }
+                }}
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Bell className="w-5 h-5 text-primary" />

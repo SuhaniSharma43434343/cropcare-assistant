@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AlertProvider } from "./components/alerts/AlertProvider";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CropProvider } from "./contexts/CropContext";
+import { DiseaseProvider } from "./contexts/DiseaseContext";
 import AlertSystem from "./components/alerts/AlertSystem";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ReminderAlert from "./components/reminders/ReminderAlert";
@@ -23,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import AlertDemo from "./pages/AlertDemo";
 import TreatmentPlans from "./pages/TreatmentPlans";
 import MarketRates from "./pages/MarketRates";
+import Investment from "./pages/Investment";
 
 // Initialize data cleanup on app start
 DataCleanupService.initialize();
@@ -47,6 +49,7 @@ const AppContent = () => {
           <Route path="/treatment-plans" element={<TreatmentPlans />} />
           <Route path="/market-rates" element={<MarketRates />} />
           <Route path="/alert-demo" element={<AlertDemo />} />
+          <Route path="/investment" element={<Investment />} />
         </Routes>
       </BrowserRouter>
       <AlertSystem 
@@ -67,11 +70,13 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <CropProvider>
-          <AlertProvider>
-            <Toaster />
-            <Sonner />
-            <AppContent />
-          </AlertProvider>
+          <DiseaseProvider>
+            <AlertProvider>
+              <Toaster />
+              <Sonner />
+              <AppContent />
+            </AlertProvider>
+          </DiseaseProvider>
         </CropProvider>
       </AuthProvider>
     </TooltipProvider>

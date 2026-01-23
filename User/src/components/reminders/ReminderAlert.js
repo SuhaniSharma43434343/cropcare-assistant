@@ -85,13 +85,13 @@ const ReminderAlert = () => {
             <div className="flex items-start gap-3 mb-4">
               <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-semibold text-foreground mb-1">
+                <h4 className="font-semibold text-white mb-1">
                   Apply {activeReminder.treatmentName}
                 </h4>
-                <p className="text-sm text-muted-foreground mb-2">
+                <p className="text-sm text-white mb-2">
                   For {activeReminder.diseaseName}
                 </p>
-                <div className="text-sm space-y-1">
+                <div className="text-sm space-y-1 text-white">
                   <p><span className="font-medium">Dosage:</span> {activeReminder.dosage}</p>
                   {activeReminder.instructions && (
                     <p><span className="font-medium">Instructions:</span> {activeReminder.instructions}</p>
