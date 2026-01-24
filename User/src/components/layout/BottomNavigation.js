@@ -54,6 +54,15 @@ const BottomNavigation = () => {
     }
   };
 
+  // Helper function to check if nav item is active
+  const isNavItemActive = (itemPath) => {
+    // Handle root path and home path as the same
+    if (itemPath === '/' && (location.pathname === '/' || location.pathname === '/home')) {
+      return true;
+    }
+    return location.pathname === itemPath;
+  };
+
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 safe-area-bottom"
@@ -64,7 +73,7 @@ const BottomNavigation = () => {
       <div className="max-w-md mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-around py-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = isNavItemActive(item.path);
             const Icon = item.icon;
 
             return (

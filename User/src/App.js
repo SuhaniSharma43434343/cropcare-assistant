@@ -57,10 +57,12 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Root redirect component
+// Root redirect component - Fixed to properly handle Home vs Dashboard
 const RootRedirect = () => {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />;
+  // For authenticated users, show the Home page (Index component) at root
+  // Only redirect to auth if not authenticated
+  return isAuthenticated ? <ProtectedRoute><Index /></ProtectedRoute> : <Navigate to="/auth" replace />;
 };
 
 const AppContent = () => {
@@ -70,7 +72,9 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        {/* Root path now properly shows Home page for authenticated users */}
         <Route path="/" element={<RootRedirect />} />
+        {/* Keep /home as an alias for the Home page */}
         <Route path="/home" element={
           <ProtectedRoute>
             <Index />

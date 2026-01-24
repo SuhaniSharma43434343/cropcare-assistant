@@ -46,9 +46,10 @@ router.get('/forecast/:city', async (req, res) => {
     
     const { lat, lon } = geoResponse.data[0];
     
-    // Use OneCall API for better data
+    // Use OneCall API 3.0 for better data
     const oneCallResponse = await axios.get(
-      `${OPENWEATHER_ONECALL_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&exclude=minutely,alerts`
+      `${OPENWEATHER_ONECALL_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&exclude=minutely,alerts`,
+      { timeout: 10000 }
     );
 
     const data = oneCallResponse.data;
@@ -85,7 +86,7 @@ router.get('/forecast/:city', async (req, res) => {
   }
 });
 
-// Get weather by coordinates using OneCall API 3.0
+// Get weather by coordinates using Current Weather API (free tier)
 router.get('/forecast/coords/:lat/:lon', async (req, res) => {
   try {
     const { lat, lon } = req.params;
@@ -113,50 +114,73 @@ router.get('/forecast/coords/:lat/:lon', async (req, res) => {
       });
     }
 
-    // Use OneCall API 3.0 for better data
-    const oneCallResponse = await axios.get(
-      `${OPENWEATHER_ONECALL_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&exclude=minutely,alerts`
+    console.log(`Fetching weather for coordinates: ${lat}, ${lon}`);
+    console.log(`Using API key: ${OPENWEATHER_API_KEY.substring(0, 8)}...`);
+
+    // Use Current Weather API (free tier)
+    const currentResponse = await axios.get(
+      `${OPENWEATHER_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`,
+      { 
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'CropCare-Assistant/1.0'
+        }
+      }
     );
 
-    const data = oneCallResponse.data;
-    
-    // Get location name from reverse geocoding
-    let locationName = 'Your Location';
+    const currentData = currentResponse.data;
+    console.log('Current weather API success:', currentData.name);
+
+    // Get 5-day forecast (free tier)
+    let forecastData = [];
     try {
-      const geoResponse = await axios.get(
-        `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${OPENWEATHER_API_KEY}`
+      const forecastResponse = await axios.get(
+        `${OPENWEATHER_BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&cnt=8`,
+        { timeout: 10000 }
       );
-      if (geoResponse.data && geoResponse.data.length > 0) {
-        locationName = geoResponse.data[0].name;
-      }
-    } catch (geoError) {
-      console.log('Geocoding failed, using default location name');
+      
+      forecastData = forecastResponse.data.list.map(item => ({
+        time: new Date(item.dt * 1000).toISOString().slice(0, 19).replace('T', ' '),
+        temperature: Math.round(item.main.temp),
+        description: item.weather[0].description,
+        icon: item.weather[0].icon,
+        humidity: item.main.humidity
+      }));
+    } catch (forecastError) {
+      console.log('Forecast API failed, using current data only');
+      forecastData = [
+        {
+          time: new Date().toISOString().slice(0, 19).replace('T', ' '),
+          temperature: Math.round(currentData.main.temp),
+          description: currentData.weather[0].description,
+          icon: currentData.weather[0].icon,
+          humidity: currentData.main.humidity
+        }
+      ];
     }
 
     res.json({
       success: true,
       data: {
         current: {
-          temperature: Math.round(data.current.temp),
-          description: data.current.weather[0].description,
-          icon: data.current.weather[0].icon,
-          humidity: data.current.humidity,
-          windSpeed: Math.round(data.current.wind_speed || 0),
-          city: locationName,
-          country: 'IN'
+          temperature: Math.round(currentData.main.temp),
+          description: currentData.weather[0].description,
+          icon: currentData.weather[0].icon,
+          humidity: currentData.main.humidity,
+          windSpeed: Math.round(currentData.wind?.speed || 0),
+          city: currentData.name,
+          country: currentData.sys.country
         },
-        forecast: data.hourly.slice(0, 8).map(item => ({
-          time: new Date(item.dt * 1000).toISOString().slice(0, 19).replace('T', ' '),
-          temperature: Math.round(item.temp),
-          description: item.weather[0].description,
-          icon: item.weather[0].icon,
-          humidity: item.humidity
-        }))
+        forecast: forecastData
       }
     });
 
   } catch (error) {
-    console.error('Weather API Error:', error.response?.data || error.message);
+    console.error('Weather API Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     
     // Return fallback data instead of error
     res.json({
@@ -164,7 +188,7 @@ router.get('/forecast/coords/:lat/:lon', async (req, res) => {
       data: {
         current: {
           temperature: 25,
-          description: 'Weather unavailable',
+          description: 'Weather service unavailable',
           icon: '01d',
           humidity: 60,
           windSpeed: 5,
@@ -172,7 +196,7 @@ router.get('/forecast/coords/:lat/:lon', async (req, res) => {
           country: 'IN'
         },
         forecast: [
-          { time: new Date().toISOString().slice(0, 19).replace('T', ' '), temperature: 25, description: 'Weather unavailable', icon: '01d', humidity: 60 }
+          { time: new Date().toISOString().slice(0, 19).replace('T', ' '), temperature: 25, description: 'Weather service unavailable', icon: '01d', humidity: 60 }
         ]
       }
     });

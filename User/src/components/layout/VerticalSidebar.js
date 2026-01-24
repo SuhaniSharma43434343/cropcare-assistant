@@ -34,6 +34,15 @@ const VerticalSidebar = () => {
     setIsOpen(false);
   };
 
+  // Helper function to check if nav item is active
+  const isNavItemActive = (itemPath) => {
+    // Handle root path and home path as the same
+    if (itemPath === '/' && (location.pathname === '/' || location.pathname === '/home')) {
+      return true;
+    }
+    return location.pathname === itemPath;
+  };
+
   return (
     <>
       {/* Mobile Menu Button */}
@@ -88,7 +97,7 @@ const VerticalSidebar = () => {
           <nav className="flex-1 p-4">
             <div className="space-y-2">
               {navItems.map((item) => {
-                const isActive = location.pathname === item.path;
+                const isActive = isNavItemActive(item.path);
                 const Icon = item.icon;
                 
                 return (

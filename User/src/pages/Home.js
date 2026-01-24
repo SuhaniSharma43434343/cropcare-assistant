@@ -95,7 +95,7 @@ const Home = () => {
               </div>
               <div>
                 <p className="text-lg text-gray-600">
-                  Welcome back, {user?.name?.split(' ')[0] || 'Farmer'}!
+                  Welcome back, {user?.name?.split(' ')[0] || 'किसान'}!
                 </p>
               </div>
             </div>

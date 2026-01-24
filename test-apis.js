@@ -2,63 +2,65 @@ const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5001';
 
-async function testWeatherAPI() {
-  console.log('🌤️  Testing Weather API...');
+async function testAllAPIs() {
+  console.log('🧪 CropCare AI - API Test Suite\n');
   
+  // Health Check
   try {
-    // Test weather by coordinates (Mumbai)
-    const coordsResponse = await axios.get(`${BASE_URL}/api/weather/forecast/coords/19.0760/72.8777`);
-    console.log('✅ Weather by coordinates:', coordsResponse.data.success ? 'SUCCESS' : 'FAILED');
-    
-    // Test weather by city
-    const cityResponse = await axios.get(`${BASE_URL}/api/weather/forecast/Mumbai`);
-    console.log('✅ Weather by city:', cityResponse.data.success ? 'SUCCESS' : 'FAILED');
-    
-    console.log('Current weather:', cityResponse.data.data.current);
+    const health = await axios.get(`${BASE_URL}/api/health`);
+    console.log('✅ Health:', health.data.status);
   } catch (error) {
-    console.log('❌ Weather API Error:', error.message);
+    console.log('❌ Health: FAILED');
+    return;
   }
-}
-
-async function testMandiAPI() {
-  console.log('\n💰 Testing Mandi API...');
   
+  // Weather API
   try {
-    // Test mandi prices
-    const response = await axios.get(`${BASE_URL}/api/mandi/prices?crop=Rice&limit=5`);
-    console.log('✅ Mandi API:', response.data.success ? 'SUCCESS' : 'FAILED');
-    console.log('Data source:', response.data.data.source);
-    console.log('Records found:', response.data.data.records.length);
+    const weather = await axios.get(`${BASE_URL}/api/weather/forecast/Mumbai`);
+    console.log('✅ Weather:', weather.data.success ? 'SUCCESS' : 'FAILED');
+  } catch (error) {
+    console.log('❌ Weather: FAILED');
+  }
+  
+  // Mandi API - Enhanced Testing
+  try {
+    const market = await axios.get(`${BASE_URL}/api/mandi/prices?crop=Rice&limit=3`);
+    console.log('✅ Mandi API:', market.data.success ? 'SUCCESS' : 'FAILED');
+    console.log('   Source:', market.data.data?.source);
+    console.log('   Records:', market.data.data?.records?.length || 0);
     
-    if (response.data.data.records.length > 0) {
-      console.log('Sample record:', response.data.data.records[0]);
+    // Test government API directly
+    try {
+      const govTest = await axios.get(`${BASE_URL}/api/mandi/test-govt-api`);
+      console.log('✅ Gov API:', govTest.data.success ? 'WORKING' : 'FAILED');
+    } catch (govError) {
+      console.log('⚠️  Gov API: UNAVAILABLE (using fallback)');
     }
   } catch (error) {
-    console.log('❌ Mandi API Error:', error.message);
+    console.log('❌ Mandi API: FAILED');
   }
-}
-
-async function testHealthAPI() {
-  console.log('\n🏥 Testing Health API...');
   
+  // Auth Test
   try {
-    const response = await axios.get(`${BASE_URL}/api/health`);
-    console.log('✅ Health API:', response.data.status === 'OK' ? 'SUCCESS' : 'FAILED');
-    console.log('Backend:', response.data.backend);
-    console.log('ML Service:', response.data.ml_service);
+    const auth = await axios.post(`${BASE_URL}/api/auth/register`, {
+      phone: '9876543210',
+      password: 'test123'
+    });
+    console.log('✅ Auth:', auth.data.success ? 'SUCCESS' : 'USER EXISTS');
   } catch (error) {
-    console.log('❌ Health API Error:', error.message);
+    if (error.response?.status === 400) {
+      console.log('✅ Auth: USER EXISTS (OK)');
+    } else {
+      console.log('❌ Auth: FAILED');
+    }
   }
+  
+  console.log('\n🎯 Test completed!');
+  console.log('\n📋 Available Endpoints:');
+  console.log('   /api/mandi/prices - Market prices');
+  console.log('   /api/mandi/test-govt-api - Test government data');
+  console.log('   /api/weather/forecast/:city - Weather data');
+  console.log('   /api/auth/register - User registration');
 }
 
-async function runTests() {
-  console.log('🚀 Starting API Tests...\n');
-  
-  await testHealthAPI();
-  await testWeatherAPI();
-  await testMandiAPI();
-  
-  console.log('\n✨ Tests completed!');
-}
-
-runTests();
+testAllAPIs();

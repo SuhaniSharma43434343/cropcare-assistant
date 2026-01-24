@@ -116,7 +116,7 @@ const FarmerInvestor = () => {
       newErrors.workersNeeded = validateField('workersNeeded', formData.workersNeeded);
     }
     
-    // Investor form validations
+    // Thekedar form validations
     if (selectedOption === 'Inventory Rent') {
       newErrors.location = validateField('location', formData.location);
       newErrors.inventory = validateField('inventory', formData.inventory);
@@ -281,7 +281,7 @@ const FarmerInvestor = () => {
     }
   ];
 
-  const investorOptions = [
+  const thekedarsOptions = [
     {
       id: 'Inventory Rent',
       title: 'Provide Equipment',
@@ -304,7 +304,7 @@ const FarmerInvestor = () => {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
           <Sprout className="w-8 h-8 text-emerald-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Farmer Services</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">किसान सेवा</h3>
         <p className="text-gray-600">What resources do you need for your farm?</p>
       </div>
       
@@ -338,18 +338,18 @@ const FarmerInvestor = () => {
     </div>
   );
 
-  const renderInvestorOptions = () => (
+  const renderThekedarsOptions = () => (
     <div className="space-y-4">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
           <TrendingUp className="w-8 h-8 text-blue-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Investment Services</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Thekedar</h3>
         <p className="text-gray-600">What resources can you provide to farmers?</p>
       </div>
       
       <div className="grid gap-4">
-        {investorOptions.map((option) => {
+        {thekedarsOptions.map((option) => {
           const IconComponent = option.icon;
           return (
             <button
@@ -493,7 +493,7 @@ const FarmerInvestor = () => {
     }
   };
 
-  const renderInvestorForm = () => {
+  const renderThekedarsForm = () => {
     if (selectedOption === 'Inventory Rent') {
       return (
         <div className="space-y-6">
@@ -725,7 +725,7 @@ const FarmerInvestor = () => {
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Welcome to FarmConnect</h2>
                 <p className="text-gray-600 text-base sm:text-lg max-w-md mx-auto">
-                  Connecting farmers with investors to build a sustainable agricultural ecosystem
+                  Connecting किसान with thekedars to build a sustainable agricultural ecosystem
                 </p>
               </div>
               
@@ -741,7 +741,7 @@ const FarmerInvestor = () => {
                       <Sprout className="w-7 sm:w-8 h-7 sm:h-8 text-emerald-600" />
                     </div>
                     <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-emerald-700 transition-colors">
-                      Farmer
+                      किसान
                     </h3>
                     <p className="text-gray-600 mb-4 text-sm sm:text-base">Request resources and support for your farming needs</p>
                     <div className="flex items-center justify-center space-x-2 text-emerald-600 group-hover:text-emerald-700">
@@ -751,9 +751,9 @@ const FarmerInvestor = () => {
                   </div>
                 </button>
 
-                {/* Investor Card */}
+                {/* Thekedar Card */}
                 <button
-                  onClick={() => handleRoleSelect('investor')}
+                  onClick={() => handleRoleSelect('thekedar')}
                   className="group relative bg-white rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-300 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -762,7 +762,7 @@ const FarmerInvestor = () => {
                       <TrendingUp className="w-7 sm:w-8 h-7 sm:h-8 text-blue-600" />
                     </div>
                     <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
-                      Investor
+                      Thekedar
                     </h3>
                     <p className="text-gray-600 mb-4 text-sm sm:text-base">Provide resources and invest in agricultural projects</p>
                     <div className="flex items-center justify-center space-x-2 text-blue-600 group-hover:text-blue-700">
@@ -794,7 +794,7 @@ const FarmerInvestor = () => {
                       <CheckCircle className="w-8 h-8 text-green-600" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Offer Posted Successfully!</h3>
-                    <p className="text-gray-600">Your investment offer is now live. Here are matching requests:</p>
+                    <p className="text-gray-600">Your thekedar offer is now live. Here are matching requests:</p>
                   </div>
                   {renderMatches()}
                 </div>
@@ -828,7 +828,7 @@ const FarmerInvestor = () => {
                 <span>Back to role selection</span>
               </button>
               
-              {selectedRole === 'farmer' ? renderFarmerOptions() : renderInvestorOptions()}
+              {selectedRole === 'farmer' ? renderFarmerOptions() : renderThekedarsOptions()}
             </div>
           ) : (
             /* Professional Forms */
@@ -842,7 +842,7 @@ const FarmerInvestor = () => {
               </button>
               
               <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
-                {selectedRole === 'farmer' ? renderFarmerForm() : renderInvestorForm()}
+                {selectedRole === 'farmer' ? renderFarmerForm() : renderThekedarsForm()}
               </div>
             </div>
           )}

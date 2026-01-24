@@ -66,31 +66,37 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
   const fetchMandiPrices = async () => {
     try {
       setLoading(true);
+      setError(null);
       
-      // Use backend API instead of direct government API
+      console.log('Fetching mandi prices for crop:', selectedCrop);
+      
+      // Use backend API
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/mandi/prices?crop=${encodeURIComponent(selectedCrop)}&limit=10`
       );
       
       if (!response.ok) {
-        throw new Error('Failed to fetch market data');
+        throw new Error(`HTTP ${response.status}: Failed to fetch market data`);
       }
       
       const result = await response.json();
+      console.log('Mandi API response:', result);
       
       if (result.success && result.data.records && result.data.records.length > 0) {
         setPrices({
           records: result.data.records,
           lastUpdated: result.data.lastUpdated,
-          source: result.data.source
+          source: result.data.source,
+          totalRecords: result.data.totalRecords
         });
         setError(null);
+        console.log(`Loaded ${result.data.records.length} market records from ${result.data.source}`);
       } else {
-        setError('No market data available');
+        throw new Error('No market data available');
       }
     } catch (err) {
-      setError('Failed to fetch market prices');
       console.error('Mandi API Error:', err);
+      setError('Failed to fetch market prices');
       
       // Set fallback data instead of just error
       setPrices({
@@ -111,7 +117,8 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
           }
         ],
         source: 'fallback_data',
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        totalRecords: 2
       });
     } finally {
       setLoading(false);
@@ -170,7 +177,8 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">Market Prices</h3>
             <p className="text-xs text-gray-600">
-              {prices?.source === 'government_api' ? 'Live Mandi Rates' : 'Sample Market Data'}
+              {prices?.source === 'government_api' ? 'Live Government Data' : 
+               prices?.source === 'mock_data' ? 'Sample Market Data' : 'Fallback Data'}
             </p>
           </div>
         </div>

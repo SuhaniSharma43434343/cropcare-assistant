@@ -122,7 +122,7 @@ router.post('/farmer-request', async (req, res) => {
   }
 });
 
-// Get all farmer requests (for investors)
+// Get all farmer requests (for thekedars)
 router.get('/requests', auth, async (req, res) => {
   try {
     const { type, location, status = 'pending' } = req.query;
@@ -190,12 +190,12 @@ router.get('/requests', auth, async (req, res) => {
   }
 });
 
-// Respond to farmer request (for investors)
+// Respond to farmer request (for thekedars)
 router.post('/respond/:requestId', auth, async (req, res) => {
   try {
     const { requestId } = req.params;
     const { message, contactInfo } = req.body;
-    const investorId = req.user.id;
+    const thekedarsId = req.user.id;
 
     if (!message?.trim()) {
       return res.status(400).json({
@@ -219,9 +219,9 @@ router.post('/respond/:requestId', auth, async (req, res) => {
       });
     }
 
-    // Check if investor already responded
+    // Check if thekedar already responded
     const existingResponse = farmRequest.responses.find(
-      resp => resp.investorId.toString() === investorId
+      resp => resp.thekedarsId.toString() === thekedarsId
     );
 
     if (existingResponse) {
@@ -233,7 +233,7 @@ router.post('/respond/:requestId', auth, async (req, res) => {
 
     // Add response
     farmRequest.responses.push({
-      investorId,
+      thekedarsId,
       message: message.trim(),
       contactInfo: contactInfo?.trim() || req.user.email
     });
@@ -265,7 +265,7 @@ router.get('/my-requests', auth, async (req, res) => {
     
     const requests = await FarmRequest.find({ farmerId: userId })
       .sort({ createdAt: -1 })
-      .populate('responses.investorId', 'name email');
+      .populate('responses.thekedarsId', 'name email');
 
     res.json({
       success: true,
@@ -277,7 +277,7 @@ router.get('/my-requests', auth, async (req, res) => {
         createdAt: req.createdAt,
         responseCount: req.responseCount,
         responses: req.responses.map(resp => ({
-          investorName: resp.investorId.name,
+          thekedarsName: resp.thekedarsId.name,
           message: resp.message,
           contactInfo: resp.contactInfo,
           respondedAt: resp.respondedAt

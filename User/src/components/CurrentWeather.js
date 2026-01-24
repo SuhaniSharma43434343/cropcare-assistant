@@ -26,6 +26,9 @@ const CurrentWeather = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('Fetching weather for coordinates:', lat, lon);
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/weather/forecast/coords/${lat}/${lon}`);
       
       if (!response.ok) {
@@ -33,6 +36,7 @@ const CurrentWeather = () => {
       }
       
       const data = await response.json();
+      console.log('Weather API response:', data);
       
       if (data.success && data.data) {
         setWeather(data.data);
@@ -55,6 +59,9 @@ const CurrentWeather = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('Fetching weather for city:', city);
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/weather/forecast/${city}`);
       
       if (!response.ok) {
@@ -62,6 +69,7 @@ const CurrentWeather = () => {
       }
       
       const data = await response.json();
+      console.log('City weather API response:', data);
       
       if (data.success && data.data) {
         setWeather(data.data);
