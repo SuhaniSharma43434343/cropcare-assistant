@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, IndianRupee, TrendingUp, TrendingDown, MapPin, RefreshCw } from 'lucide-react';
+import { ChevronLeft, IndianRupee, TrendingUp, TrendingDown, MapPin, RefreshCw, AlertCircle } from 'lucide-react';
 import MobileLayout from '../components/layout/MobileLayout';
 
 const MarketRates = () => {
@@ -8,32 +8,19 @@ const MarketRates = () => {
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchMarketRates = async (showRefresh = false) => {
     try {
       if (showRefresh) setRefreshing(true);
       else setLoading(true);
       
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/mandi/prices?limit=50`
-      );
-      
-      if (!response.ok) throw new Error('Failed to fetch');
-      
-      const result = await response.json();
-      if (result.success && result.data.records) {
-        const processedRates = result.data.records.map((record, index) => ({
-          id: index,
-          crop: record.commodity || 'Unknown',
-          price: record.modal_price || record.min_price || record.max_price || 'N/A',
-          market: record.market || record.district || 'Unknown',
-          state: record.state || 'Unknown',
-          change: Math.floor(Math.random() * 20) - 10 // Mock change
-        }));
-        setRates(processedRates);
-      }
+      // Simulate service unavailable
+      throw new Error('Market data service temporarily unavailable');
     } catch (error) {
       console.error('Market rates error:', error);
+      setError('Service temporarily unavailable');
+      setRates([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -41,7 +28,11 @@ const MarketRates = () => {
   };
 
   useEffect(() => {
-    fetchMarketRates();
+    const timer = setTimeout(() => {
+      fetchMarketRates();
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -84,6 +75,20 @@ const MarketRates = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          ) : error ? (
+            <div className="bg-white rounded-xl p-8 shadow-sm text-center">
+              <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Market Data Unavailable</h3>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-sm text-blue-600 mb-4">We're working to restore this service</p>
+              <button
+                onClick={() => fetchMarketRates(true)}
+                disabled={refreshing}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {refreshing ? 'Retrying...' : 'Try Again'}
+              </button>
             </div>
           ) : (
             <div className="space-y-3">

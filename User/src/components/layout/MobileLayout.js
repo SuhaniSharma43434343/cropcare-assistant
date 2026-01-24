@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import BottomNavigation from "./BottomNavigation";
+import Header from "./Header";
 
-const MobileLayout = ({ children, showNav = true, className = "" }) => {
+const MobileLayout = ({ children, showNav = true, showHeader = true, headerTitle, className = "" }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [screenSize, setScreenSize] = useState('mobile');
 
@@ -51,6 +52,11 @@ const MobileLayout = ({ children, showNav = true, className = "" }) => {
         >
           You're offline. Some features may not be available.
         </motion.div>
+      )}
+
+      {/* Header */}
+      {showHeader && (
+        <Header title={headerTitle} />
       )}
 
       {/* Main Content Area */}

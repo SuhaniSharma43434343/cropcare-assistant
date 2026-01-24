@@ -4,6 +4,7 @@ const router = express.Router();
 
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
 const OPENWEATHER_BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const OPENWEATHER_ONECALL_URL = 'https://api.openweathermap.org/data/3.0/onecall';
 
 // Get current weather and forecast
 router.get('/forecast/:city', async (req, res) => {
@@ -34,32 +35,42 @@ router.get('/forecast/:city', async (req, res) => {
       });
     }
 
-    const [currentWeatherResponse, forecastResponse] = await Promise.all([
-      axios.get(`${OPENWEATHER_BASE_URL}/weather?q=${city}&appid=${OPENWEATHER_API_KEY}&units=metric`),
-      axios.get(`${OPENWEATHER_BASE_URL}/forecast?q=${city}&appid=${OPENWEATHER_API_KEY}&units=metric`)
-    ]);
+    // Get coordinates for the city first
+    const geoResponse = await axios.get(
+      `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${OPENWEATHER_API_KEY}`
+    );
+    
+    if (!geoResponse.data || geoResponse.data.length === 0) {
+      throw new Error('City not found');
+    }
+    
+    const { lat, lon } = geoResponse.data[0];
+    
+    // Use OneCall API for better data
+    const oneCallResponse = await axios.get(
+      `${OPENWEATHER_ONECALL_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&exclude=minutely,alerts`
+    );
 
-    const currentWeather = currentWeatherResponse.data;
-    const forecast = forecastResponse.data;
+    const data = oneCallResponse.data;
 
     res.json({
       success: true,
       data: {
         current: {
-          temperature: Math.round(currentWeather.main.temp),
-          description: currentWeather.weather[0].description,
-          icon: currentWeather.weather[0].icon,
-          humidity: currentWeather.main.humidity,
-          windSpeed: Math.round(currentWeather.wind?.speed || 0),
-          city: currentWeather.name,
-          country: currentWeather.sys.country
+          temperature: Math.round(data.current.temp),
+          description: data.current.weather[0].description,
+          icon: data.current.weather[0].icon,
+          humidity: data.current.humidity,
+          windSpeed: Math.round(data.current.wind_speed || 0),
+          city: geoResponse.data[0].name,
+          country: geoResponse.data[0].country
         },
-        forecast: forecast.list.slice(0, 8).map(item => ({
-          time: item.dt_txt,
-          temperature: Math.round(item.main.temp),
+        forecast: data.hourly.slice(0, 8).map(item => ({
+          time: new Date(item.dt * 1000).toISOString().slice(0, 19).replace('T', ' '),
+          temperature: Math.round(item.temp),
           description: item.weather[0].description,
           icon: item.weather[0].icon,
-          humidity: item.main.humidity
+          humidity: item.humidity
         }))
       }
     });
@@ -74,7 +85,7 @@ router.get('/forecast/:city', async (req, res) => {
   }
 });
 
-// Get weather by coordinates
+// Get weather by coordinates using OneCall API 3.0
 router.get('/forecast/coords/:lat/:lon', async (req, res) => {
   try {
     const { lat, lon } = req.params;
@@ -102,32 +113,44 @@ router.get('/forecast/coords/:lat/:lon', async (req, res) => {
       });
     }
 
-    const [currentWeatherResponse, forecastResponse] = await Promise.all([
-      axios.get(`${OPENWEATHER_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`),
-      axios.get(`${OPENWEATHER_BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`)
-    ]);
+    // Use OneCall API 3.0 for better data
+    const oneCallResponse = await axios.get(
+      `${OPENWEATHER_ONECALL_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&exclude=minutely,alerts`
+    );
 
-    const currentWeather = currentWeatherResponse.data;
-    const forecast = forecastResponse.data;
+    const data = oneCallResponse.data;
+    
+    // Get location name from reverse geocoding
+    let locationName = 'Your Location';
+    try {
+      const geoResponse = await axios.get(
+        `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${OPENWEATHER_API_KEY}`
+      );
+      if (geoResponse.data && geoResponse.data.length > 0) {
+        locationName = geoResponse.data[0].name;
+      }
+    } catch (geoError) {
+      console.log('Geocoding failed, using default location name');
+    }
 
     res.json({
       success: true,
       data: {
         current: {
-          temperature: Math.round(currentWeather.main.temp),
-          description: currentWeather.weather[0].description,
-          icon: currentWeather.weather[0].icon,
-          humidity: currentWeather.main.humidity,
-          windSpeed: Math.round(currentWeather.wind?.speed || 0),
-          city: currentWeather.name || 'Unknown',
-          country: currentWeather.sys?.country || 'IN'
+          temperature: Math.round(data.current.temp),
+          description: data.current.weather[0].description,
+          icon: data.current.weather[0].icon,
+          humidity: data.current.humidity,
+          windSpeed: Math.round(data.current.wind_speed || 0),
+          city: locationName,
+          country: 'IN'
         },
-        forecast: forecast.list.slice(0, 8).map(item => ({
-          time: item.dt_txt,
-          temperature: Math.round(item.main.temp),
+        forecast: data.hourly.slice(0, 8).map(item => ({
+          time: new Date(item.dt * 1000).toISOString().slice(0, 19).replace('T', ' '),
+          temperature: Math.round(item.temp),
           description: item.weather[0].description,
           icon: item.weather[0].icon,
-          humidity: item.main.humidity
+          humidity: item.humidity
         }))
       }
     });

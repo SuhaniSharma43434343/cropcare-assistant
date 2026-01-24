@@ -192,6 +192,24 @@
     @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
   }
   
+  .shadow-soft {
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.1), 0 4px 16px -4px rgba(0, 0, 0, 0.06);
+  }
+  
+  .shadow-modern {
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 8px 32px -8px rgba(0, 0, 0, 0.06);
+  }
+  
+  .gradient-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .feature-card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1;
+  }
+  
   /* Focus states for accessibility */
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;

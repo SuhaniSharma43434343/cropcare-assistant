@@ -46,21 +46,43 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  const checkAuthStatus = () => {
+  const checkAuthStatus = async () => {
     try {
       const userData = localStorage.getItem('cropcare_user');
       const authToken = localStorage.getItem('cropcare_token');
       
       if (userData && authToken) {
-        dispatch({
-          type: 'LOGIN',
-          payload: JSON.parse(userData)
+        // Validate token with backend
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/profile`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
         });
-      } else {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            dispatch({
+              type: 'LOGIN',
+              payload: result.user
+            });
+            return;
+          }
+        }
+        
+        // Token is invalid, clear storage
+        localStorage.removeItem('cropcare_user');
+        localStorage.removeItem('cropcare_token');
+        localStorage.removeItem('token');
       }
+      
+      dispatch({ type: 'SET_LOADING', payload: false });
     } catch (error) {
       console.error('Auth check failed:', error);
+      // Clear invalid tokens
+      localStorage.removeItem('cropcare_user');
+      localStorage.removeItem('cropcare_token');
+      localStorage.removeItem('token');
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
@@ -69,33 +91,41 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check stored users
-      const users = JSON.parse(localStorage.getItem('cropcare_users') || '[]');
-      const user = users.find(u => u.phone === phone && u.password === password);
-      
-      if (!user) {
-        throw new Error('Invalid phone number or password');
-      }
-
-      const authToken = `token_${Date.now()}_${Math.random()}`;
-      const userData = { ...user };
-      delete userData.password; // Don't store password in user object
-
-      localStorage.setItem('cropcare_user', JSON.stringify(userData));
-      localStorage.setItem('cropcare_token', authToken);
-
-      dispatch({
-        type: 'LOGIN',
-        payload: userData
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone, password })
       });
 
-      return { success: true };
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Login failed');
+      }
+
+      if (result.success && result.token && result.user) {
+        localStorage.setItem('cropcare_user', JSON.stringify(result.user));
+        localStorage.setItem('cropcare_token', result.token);
+        localStorage.setItem('token', result.token); // Fallback for compatibility
+
+        dispatch({
+          type: 'LOGIN',
+          payload: result.user
+        });
+
+        return { success: true };
+      } else {
+        throw new Error(result.message || 'Invalid response from server');
+      }
     } catch (error) {
+      console.error('Login error:', error);
       dispatch({ type: 'SET_LOADING', payload: false });
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Network error. Please check your connection and try again.' 
+      };
     }
   };
 
@@ -103,60 +133,51 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user already exists
-      const users = JSON.parse(localStorage.getItem('cropcare_users') || '[]');
-      const existingUser = users.find(u => u.phone === userData.phone);
-      
-      if (existingUser) {
-        throw new Error('User already exists with this phone number');
-      }
-
-      // Create new user with minimal data
-      const newUser = {
-        id: Date.now(),
-        phone: userData.phone,
-        password: userData.password,
-        name: '', // Empty initially, can be updated in profile
-        email: '', // Empty initially, can be updated in profile
-        selectedCrops: [],
-        farmDetails: {
-          location: '',
-          size: '',
-          phone: userData.phone
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
-        createdAt: new Date().toISOString(),
-        profileComplete: false // Profile is not complete initially
-      };
-
-      users.push(newUser);
-      localStorage.setItem('cropcare_users', JSON.stringify(users));
-
-      // Auto login after signup
-      const authToken = `token_${Date.now()}_${Math.random()}`;
-      const userDataForStorage = { ...newUser };
-      delete userDataForStorage.password;
-
-      localStorage.setItem('cropcare_user', JSON.stringify(userDataForStorage));
-      localStorage.setItem('cropcare_token', authToken);
-
-      dispatch({
-        type: 'LOGIN',
-        payload: userDataForStorage
+        body: JSON.stringify({
+          phone: userData.phone,
+          password: userData.password
+        })
       });
 
-      return { success: true };
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Registration failed');
+      }
+
+      if (result.success && result.token && result.user) {
+        localStorage.setItem('cropcare_user', JSON.stringify(result.user));
+        localStorage.setItem('cropcare_token', result.token);
+        localStorage.setItem('token', result.token); // Fallback for compatibility
+
+        dispatch({
+          type: 'LOGIN',
+          payload: result.user
+        });
+
+        return { success: true };
+      } else {
+        throw new Error(result.message || 'Invalid response from server');
+      }
     } catch (error) {
+      console.error('Signup error:', error);
       dispatch({ type: 'SET_LOADING', payload: false });
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Network error. Please check your connection and try again.' 
+      };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('cropcare_user');
     localStorage.removeItem('cropcare_token');
+    localStorage.removeItem('token'); // Remove fallback token
     dispatch({ type: 'LOGOUT' });
   };
 

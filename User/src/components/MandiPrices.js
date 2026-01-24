@@ -69,7 +69,7 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
       
       // Use backend API instead of direct government API
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/mandi/prices?crop=${encodeURIComponent(selectedCrop)}&limit=10`
+        `${process.env.REACT_APP_API_URL}/api/mandi/prices?crop=${encodeURIComponent(selectedCrop)}&limit=10`
       );
       
       if (!response.ok) {
@@ -91,6 +91,28 @@ const MandiPrices = ({ selectedCrop = 'Rice', location = null }) => {
     } catch (err) {
       setError('Failed to fetch market prices');
       console.error('Mandi API Error:', err);
+      
+      // Set fallback data instead of just error
+      setPrices({
+        records: [
+          {
+            commodity: selectedCrop,
+            modal_price: "2150",
+            market: "Local Market",
+            district: "Mumbai",
+            state: "Maharashtra"
+          },
+          {
+            commodity: selectedCrop,
+            modal_price: "2200",
+            market: "APMC Market",
+            district: "Pune",
+            state: "Maharashtra"
+          }
+        ],
+        source: 'fallback_data',
+        lastUpdated: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
     }

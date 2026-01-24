@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Leaf, 
   Lock, 
@@ -13,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAlerts } from '../alerts/AlertProvider';
 
 const AuthPage = () => {
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,8 +51,10 @@ const AuthPage = () => {
       
       if (result.success) {
         showSuccess('Account created successfully! Welcome to CropCare AI');
+        // Navigate to dashboard after successful signup
+        setTimeout(() => navigate('/dashboard'), 1000);
       } else {
-        showError(result.error);
+        showError(result.error || 'Registration failed. Please try again.');
       }
     } else {
       // Validation for signin
@@ -62,8 +66,10 @@ const AuthPage = () => {
       const result = await login(formData.phone, formData.password);
       if (result.success) {
         showSuccess('Welcome back to CropCare AI!');
+        // Navigate to dashboard after successful login
+        setTimeout(() => navigate('/dashboard'), 1000);
       } else {
-        showError(result.error);
+        showError(result.error || 'Login failed. Please check your credentials.');
       }
     }
   };
@@ -110,7 +116,7 @@ const AuthPage = () => {
         >
           <div className="flex mb-6">
             <button
-              onClick={() => !isSignUp && toggleMode()}
+              onClick={() => setIsSignUp(false)}
               className={`flex-1 py-3 text-sm font-medium rounded-xl transition-all ${
                 !isSignUp 
                   ? 'bg-primary text-white shadow-md' 
@@ -120,7 +126,7 @@ const AuthPage = () => {
               Sign In
             </button>
             <button
-              onClick={() => isSignUp && toggleMode()}
+              onClick={() => setIsSignUp(true)}
               className={`flex-1 py-3 text-sm font-medium rounded-xl transition-all ${
                 isSignUp 
                   ? 'bg-primary text-white shadow-md' 

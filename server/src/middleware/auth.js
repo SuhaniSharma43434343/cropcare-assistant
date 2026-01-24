@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 const auth = async (req, res, next) => {
   try {
@@ -10,13 +11,19 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
     
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid token.' });
+    // Try MongoDB first
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findById(decoded.id).select('-password');
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid token.' });
+      }
+      req.user = user;
+    } else {
+      // Fallback: just store the user ID for local auth
+      req.userId = decoded.id;
     }
 
-    req.user = user;
     next();
   } catch (error) {
     res.status(401).json({ message: 'Invalid token.' });

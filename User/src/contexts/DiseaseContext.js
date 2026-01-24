@@ -41,7 +41,9 @@ export const DiseaseProvider = ({ children }) => {
       symptoms: diagnosisResult.symptoms || [],
       description: diagnosisResult.description,
       image: capturedImage,
-      status: 'detected'
+      status: 'pending', // pending, in-progress, completed
+      treatmentStarted: null,
+      treatmentCompleted: null
     };
 
     setRecentDetections(prev => [detection, ...prev.slice(0, 9)]); // Keep last 10
@@ -55,10 +57,16 @@ export const DiseaseProvider = ({ children }) => {
     return detection;
   };
 
-  const updateDetectionStatus = (id, status) => {
+  const updateDetectionStatus = (id, status, additionalData = {}) => {
     setRecentDetections(prev => 
       prev.map(detection => 
-        detection.id === id ? { ...detection, status } : detection
+        detection.id === id ? { 
+          ...detection, 
+          status,
+          ...additionalData,
+          ...(status === 'in-progress' && !detection.treatmentStarted ? { treatmentStarted: new Date().toISOString() } : {}),
+          ...(status === 'completed' && !detection.treatmentCompleted ? { treatmentCompleted: new Date().toISOString() } : {})
+        } : detection
       )
     );
   };

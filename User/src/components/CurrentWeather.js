@@ -37,6 +37,7 @@ const CurrentWeather = () => {
       if (data.success && data.data) {
         setWeather(data.data);
         setLocationError(false);
+        setError(null);
       } else {
         throw new Error(data.message || 'Weather data unavailable');
       }
@@ -64,6 +65,7 @@ const CurrentWeather = () => {
       
       if (data.success && data.data) {
         setWeather(data.data);
+        setError(null);
       } else {
         throw new Error(data.message || 'Weather data unavailable');
       }
@@ -122,7 +124,7 @@ const CurrentWeather = () => {
     );
   }
 
-  if (error || !weather) {
+  if (error && !weather) {
     return (
       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
         <div className="flex items-center gap-3 text-gray-500">

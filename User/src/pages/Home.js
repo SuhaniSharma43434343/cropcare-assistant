@@ -15,9 +15,7 @@ import {
   Zap
 } from "lucide-react";
 import { Button } from "../components/ui/button";
-import MobileLayout from "../components/layout/MobileLayout";
-import AlertBell from "../components/alerts/AlertBell";
-import AlertCenter from "../components/alerts/AlertCenter";
+import SidebarLayout from "../components/layout/SidebarLayout";
 import WeatherMarketSection from "../components/WeatherMarketSection";
 import CitySelector from "../components/CitySelector";
 import { useAlerts } from "../components/alerts/AlertProvider";
@@ -27,7 +25,6 @@ import { useCrop } from "../contexts/CropContext";
 const Home = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Mumbai');
   const [currentLocation, setCurrentLocation] = useState(null);
   const { showSuccess, showInfo } = useAlerts();
@@ -83,93 +80,96 @@ const Home = () => {
   };
 
   return (
-    <MobileLayout>
-      <div className="px-5 pt-8 safe-area-top">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-glow">
-              <Leaf className="w-7 h-7 text-white" />
+    <SidebarLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-md mx-auto lg:max-w-none">
+          {/* Welcome Message */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-glow">
+                <Leaf className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <p className="text-lg text-gray-600">
+                  Welcome back, {user?.name?.split(' ')[0] || 'Farmer'}!
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">CropCare AI</h1>
-              <p className="text-sm text-gray-600">
-                Welcome back, {user?.name?.split(' ')[0] || 'Farmer'}!
-              </p>
-            </div>
-          </div>
-          <AlertBell onClick={() => setShowAlertCenter(true)} />
-        </motion.div>
+          </motion.div>
 
 
 
 
 
-        {/* Main Green Box - Matching Existing Design */}
+        {/* Main Action Buttons - Side by Side */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="relative overflow-hidden rounded-3xl gradient-primary p-6 mb-6 shadow-glow"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"
         >
-          <div className="relative z-10 text-left lg:text-center">
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Protect Your Crops
-            </h2>
-            <p className="text-white/80 text-sm mb-6 max-w-[200px] lg:max-w-none lg:mx-auto">
-              Detect diseases early and get expert treatment recommendations instantly.
-            </p>
-            <button
-              onClick={handleScanClick}
-              disabled={isLoading}
-              className="inline-flex items-center gap-2 bg-white/20 text-white border border-white/20 hover:bg-white/30 px-6 py-3 rounded-lg font-medium transition-all duration-200 backdrop-blur-sm"
+          {/* Protect Your Crops Button */}
+          <div className="relative overflow-hidden rounded-2xl gradient-primary p-6 shadow-glow">
+            <div className="relative z-10">
+              <h3 className="text-xl font-bold text-white mb-2">
+                Protect Your Crops
+              </h3>
+              <p className="text-white/80 text-sm mb-4">
+                Detect diseases early and get expert treatment recommendations instantly.
+              </p>
+              <button
+                onClick={handleScanClick}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 bg-white/20 text-white border border-white/20 hover:bg-white/30 px-6 py-3 rounded-xl font-medium transition-all duration-200 backdrop-blur-sm"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-5 h-5" />
+                    Scan Your Crop
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+            <motion.div 
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute right-3 top-3 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"
             >
-              {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Camera className="w-5 h-5" />
-                  Scan Your Crop
-                </>
-              )}
-            </button>
+              <Leaf className="w-6 h-6 text-white/60" />
+            </motion.div>
           </div>
-          
-          {/* Background Decorative Elements */}
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-          <motion.div 
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute right-4 top-4 w-24 h-24 bg-white/20 rounded-full flex items-center justify-center"
-          >
-            <Leaf className="w-12 h-12 text-white/60" />
-          </motion.div>
-        </motion.div>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6"
-        >
-          <button
-            onClick={() => {
-              navigate("/voice");
-              showSuccess('Voice assistant activated!');
-            }}
-            className="w-full flex flex-col items-center justify-center h-auto py-6 gap-3 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-2xl transition-all duration-200"
-          >
-            <Mic className="w-8 h-8" />
-            <span className="font-medium">Talk to AI</span>
-          </button>
+          {/* Talk to AI Button */}
+          <div className="bg-white border-2 border-green-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:border-green-700 group">
+            <div className="h-full flex flex-col">
+              <h3 className="text-xl font-bold text-green-600 mb-2 group-hover:text-green-700">
+                Talk to AI
+              </h3>
+              <p className="text-gray-600 text-sm mb-4 flex-1">
+                Get instant answers and guidance through our intelligent voice assistant.
+              </p>
+              <button
+                onClick={() => {
+                  navigate("/voice");
+                  showSuccess('Voice assistant activated!');
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-700 px-6 py-3 rounded-xl font-medium transition-all duration-200"
+              >
+                <Mic className="w-5 h-5" />
+                Start Voice Chat
+              </button>
+            </div>
+          </div>
         </motion.div>
 
         {/* Weather and Market Prices Section */}
@@ -239,13 +239,9 @@ const Home = () => {
             })}
           </div>
         </motion.div>
+        </div>
       </div>
-      
-      <AlertCenter 
-        isOpen={showAlertCenter} 
-        onClose={() => setShowAlertCenter(false)} 
-      />
-    </MobileLayout>
+    </SidebarLayout>
   );
 };
 

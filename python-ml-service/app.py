@@ -355,6 +355,18 @@ def analyze_image_for_disease(image_data, crop_type):
     except Exception as e:
         return "Healthy Plant", 0.80
 
+@app.get("/")
+async def root():
+    return {
+        "message": "CropCare ML Service",
+        "version": "2.0.0",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "predict": "/predict (POST)"
+        }
+    }
+
 @app.get("/health")
 async def health_check():
     return {

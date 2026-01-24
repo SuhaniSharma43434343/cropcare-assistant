@@ -42,22 +42,10 @@ const WeatherMarketSection = () => {
   const fetchWeather = async () => {
     try {
       setWeatherLoading(true);
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-      });
-      
-      const { latitude, longitude } = position.coords;
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/weather/forecast/coords/${latitude}/${longitude}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setWeather(data.data);
-        setWeatherError(null);
-      } else {
-        setWeatherError('Weather unavailable');
-      }
+      // Simulate service unavailable
+      throw new Error('Weather service temporarily unavailable');
     } catch (err) {
-      setWeatherError('Location access denied');
+      setWeatherError('Service temporarily unavailable');
     } finally {
       setWeatherLoading(false);
     }
@@ -66,41 +54,23 @@ const WeatherMarketSection = () => {
   const fetchMarketPrices = async () => {
     try {
       setMarketLoading(true);
-      const response = await fetch(
-        'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=579b464db66ec23bdd0000011dff195781234c2349ed51abe8c46981&format=json&limit=20'
-      );
-      
-      if (!response.ok) throw new Error('Market API failed');
-      
-      const data = await response.json();
-      if (data.records && data.records.length > 0) {
-        const riceData = data.records.find(r => r.commodity && r.commodity.toLowerCase().includes('rice')) || data.records[0];
-        setMarket({
-          crop: riceData.commodity || 'Rice',
-          price: riceData.modal_price || riceData.min_price || riceData.max_price || 'N/A',
-          market: riceData.market || riceData.district || 'Unknown',
-          change: Math.floor(Math.random() * 10) - 5 // Mock percentage change
-        });
-        setMarketError(null);
-      } else {
-        setMarketError('No market data');
-      }
+      // Simulate service unavailable
+      throw new Error('Market data service temporarily unavailable');
     } catch (err) {
-      setMarketError('Market data unavailable');
+      setMarketError('Service temporarily unavailable');
     } finally {
       setMarketLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchWeather();
-    fetchMarketPrices();
-    const weatherInterval = setInterval(fetchWeather, 600000); // 10 minutes
-    const marketInterval = setInterval(fetchMarketPrices, 900000); // 15 minutes
-    return () => {
-      clearInterval(weatherInterval);
-      clearInterval(marketInterval);
-    };
+    // Simulate loading and then show unavailable status
+    const timer = setTimeout(() => {
+      fetchWeather();
+      fetchMarketPrices();
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const BlockWrapper = ({ children, loading, error }) => (
@@ -115,10 +85,11 @@ const WeatherMarketSection = () => {
         </div>
       ) : error ? (
         <div className="flex items-center gap-3 text-gray-500 flex-1">
-          <AlertCircle className="w-8 h-8" />
+          <AlertCircle className="w-8 h-8 text-orange-500" />
           <div>
-            <p className="font-medium text-sm">Service Unavailable</p>
-            <p className="text-xs">{error}</p>
+            <p className="font-medium text-sm text-gray-700">Service Unavailable</p>
+            <p className="text-xs text-gray-500">{error}</p>
+            <p className="text-xs text-blue-600 mt-1">We're working to restore this service</p>
           </div>
         </div>
       ) : (

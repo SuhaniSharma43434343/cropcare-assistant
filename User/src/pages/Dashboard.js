@@ -2,26 +2,20 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { 
-  Calendar, 
-  Bell, 
-  Leaf, 
+  Leaf,
   AlertTriangle,
   CheckCircle,
   Clock,
-  ChevronRight
+  Activity
 } from "lucide-react";
 import { Button } from "../components/ui/button";
-import MobileLayout from "../components/layout/MobileLayout";
-import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import AlertBell from "../components/alerts/AlertBell";
-import AlertCenter from "../components/alerts/AlertCenter";
+import SidebarLayout from "../components/layout/SidebarLayout";
+import FarmAnalytics from "../components/FarmAnalytics";
 import { useAlerts } from "../components/alerts/AlertProvider";
 import { useDisease } from "../contexts/DiseaseContext";
-import apiService from "../services/apiService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showTreatmentDue, showSuccess } = useAlerts();
   const { recentDetections, getDetectionsByDisease, hasDetections, latestDetection } = useDisease();
@@ -42,7 +36,7 @@ const Dashboard = () => {
   }, [showSuccess]);
 
   // Generate recent diagnoses from context data
-  const recentDiagnoses = recentDetections.slice(0, 3).map((detection, index) => ({
+  const recentDiagnoses = recentDetections.slice(0, 5).map((detection, index) => ({
     id: detection.id,
     crop: detection.crop,
     disease: detection.name,
@@ -55,79 +49,62 @@ const Dashboard = () => {
     status: detection.status === 'detected' ? 'treating' : 'healthy',
   }));
 
-  // Generate reminders from latest detection treatment
-  const reminders = latestDetection?.treatment ? [
-    {
-      id: 1,
-      text: `Apply ${latestDetection.treatment.organic?.[0]?.name || 'Treatment'} to ${latestDetection.crop.toLowerCase()} plants`,
-      time: "Today, 6:00 PM",
-      treatment: latestDetection.treatment.organic?.[0]
-    },
-    {
-      id: 2,
-      text: `Monitor ${latestDetection.crop.toLowerCase()} for ${latestDetection.name.toLowerCase()} symptoms`,
-      time: "Tomorrow, 7:00 AM"
-    }
-  ] : [
-    { id: 1, text: "No active treatments", time: "Scan crops to get started" }
-  ];
-
   return (
-    <MobileLayout>
-      <div className="px-4 pt-6 safe-area-top">
-        {/* Header */}
+    <SidebarLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
+          className="mb-8"
         >
-          <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Track your crop health</p>
-          </div>
-          <AlertBell onClick={() => setShowAlertCenter(true)} />
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Farm Dashboard</h1>
+          <p className="text-gray-600">Monitor your crops, track diseases, and optimize your farming with AI-powered insights.</p>
         </motion.div>
 
-        {/* Latest Detection Alert */}
-        {latestDetection && (
+        {/* Latest Detection Alert - Red Indicator */}
+        {latestDetection ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mb-6"
+            transition={{ delay: 0.1 }}
+            className="mb-8"
           >
-            <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 rounded-xl p-6 shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
-                    Latest Detection: {latestDetection.name}
-                  </h3>
-                  <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
-                    Found in {latestDetection.crop} • {latestDetection.severity} severity
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <h3 className="font-semibold text-red-900 text-lg">
+                      Latest Detection Alert
+                    </h3>
+                  </div>
+                  <h4 className="font-medium text-red-800 mb-2">
+                    {latestDetection.name} detected in {latestDetection.crop}
+                  </h4>
+                  <p className="text-red-700 mb-4">
+                    Severity: {latestDetection.severity} • Detected: {new Date(latestDetection.date).toLocaleDateString()}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Button 
-                      size="sm" 
                       variant="outline"
                       onClick={() => {
-                        // Set the latest detection as current diagnosis
                         sessionStorage.setItem('diagnosisResult', JSON.stringify({
                           ...latestDetection,
                           analyzedCrop: { name: latestDetection.crop }
                         }));
                         navigate('/diagnosis');
                       }}
-                      className="text-xs border-orange-300 text-orange-700 hover:bg-orange-100"
+                      className="border-red-300 text-red-700 hover:bg-red-100"
                     >
                       View Details
                     </Button>
                     <Button 
-                      size="sm" 
                       onClick={() => navigate('/treatment')}
-                      className="text-xs bg-orange-600 hover:bg-orange-700 text-white"
+                      className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       Get Treatment
                     </Button>
@@ -136,199 +113,106 @@ const Dashboard = () => {
               </div>
             </div>
           </motion.div>
-        )}
-
-        {/* Stats Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 gap-3 mb-6"
-        >
-          <div className="glass-card rounded-2xl p-4 shadow-card">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">Disease Detections</span>
-              <AlertTriangle className="w-4 h-4 text-warning" />
-            </div>
-            <p className="text-2xl font-bold text-foreground">
-              {totalDetections}
-            </p>
-            <p className="text-xs text-muted-foreground">This month</p>
-          </div>
-        </motion.div>
-
-
-
-        {/* Disease Statistics */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card rounded-2xl p-4 shadow-card mb-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">Disease Breakdown</h2>
-            <span className="text-xs text-muted-foreground">This month</span>
-          </div>
-          <div className="h-32">
-            {!hasDetections ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Leaf className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <div className="text-sm text-muted-foreground">No disease detections yet</div>
-                  <div className="text-xs text-muted-foreground mt-1">Scan your crops to get started</div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8"
+          >
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-xl p-6 shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-900 text-lg mb-1">All Clear</h3>
+                  <p className="text-green-700">No recent disease detections. Your crops are healthy!</p>
                 </div>
               </div>
-            ) : diseaseData.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-sm text-muted-foreground">No disease detections this month</div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={diseaseData} layout="vertical">
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                    width={80}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Bar 
-                    dataKey="count" 
-                    fill="hsl(var(--primary))" 
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Farm Analytics Section - Middle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Farm Analytics</h3>
+            <FarmAnalytics totalDetections={totalDetections} diseaseData={diseaseData} />
           </div>
         </motion.div>
 
-        {/* Recent Diagnoses */}
+        {/* Recent Activity Section - Bottom */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-6"
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">Recent Diagnoses</h2>
-            <Button variant="ghost" size="sm" className="text-xs">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">Recent Activity</h3>
+            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
               View All
-              <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
-          <div className="space-y-3">
-            {recentDiagnoses.length === 0 ? (
-              <div className="text-center py-8">
-                <Leaf className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground mb-2">No recent diagnoses</p>
-                <Button 
-                  size="sm" 
-                  onClick={() => navigate("/capture")}
-                  className="text-xs"
-                >
-                  Start Scanning
-                </Button>
-              </div>
-            ) : (
-              recentDiagnoses.map((item, index) => (
+          
+          {recentDiagnoses.length === 0 ? (
+            <div className="text-center py-12">
+              <Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No recent activity</p>
+              <Button onClick={() => navigate('/capture')} className="bg-green-600 hover:bg-green-700">
+                Start Scanning Crops
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentDiagnoses.map((item, index) => (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + index * 0.1 }}
-                  className="flex items-center gap-4 p-4 glass-card rounded-2xl shadow-soft cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate("/diagnosis")}
+                  transition={{ delay: 0.4 + index * 0.1 }}
+                  className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer group"
+                  onClick={() => navigate('/diagnosis')}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    item.status === "healthy" ? "bg-success/10" : "bg-warning/10"
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    item.status === "healthy" ? "bg-green-100 group-hover:bg-green-200" : "bg-orange-100 group-hover:bg-orange-200"
                   }`}>
                     {item.status === "healthy" ? (
-                      <CheckCircle className="w-5 h-5 text-success" />
+                      <CheckCircle className="w-6 h-6 text-green-600" />
                     ) : (
-                      <Clock className="w-5 h-5 text-warning" />
+                      <Clock className="w-6 h-6 text-orange-600" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">{item.crop}</span>
-                      <span className="text-xs text-muted-foreground">•</span>
-                      <span className="text-sm text-muted-foreground">{item.disease}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium text-gray-900">{item.crop}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-600">{item.disease}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{item.date}</p>
+                    <p className="text-sm text-gray-500">{item.date}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                     item.severity === "Mild" || item.severity === "Low"
-                      ? "bg-success/10 text-success"
+                      ? "bg-green-100 text-green-700"
                       : item.severity === "Moderate" || item.severity === "Medium"
-                      ? "bg-warning/10 text-warning"
-                      : "bg-destructive/10 text-destructive"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
                   }`}>
                     {item.severity}
                   </span>
                 </motion.div>
-              ))
-            )}
-          </div>
-        </motion.div>
-
-        {/* Spray Reminders */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mb-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">Spray Reminders</h2>
-            <Button variant="ghost" size="sm" className="text-xs">
-              Add New
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {reminders.map((reminder) => (
-              <div
-                key={reminder.id}
-                className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl cursor-pointer hover:bg-primary/10 transition-colors"
-                onClick={() => {
-                  if (reminder.treatment) {
-                    showTreatmentDue(
-                      reminder.treatment.name || 'Treatment',
-                      latestDetection?.crop || 'Plants',
-                      '2 hours'
-                    );
-                  }
-                }}
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{reminder.text}</p>
-                  <p className="text-xs text-muted-foreground">{reminder.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
-      
-      <AlertCenter 
-        isOpen={showAlertCenter} 
-        onClose={() => setShowAlertCenter(false)} 
-      />
-    </MobileLayout>
+    </SidebarLayout>
   );
 };
 
